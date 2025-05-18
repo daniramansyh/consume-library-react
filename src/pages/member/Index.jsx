@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { API_URL } from '../../constant'
 import axios from 'axios'
 import Modal from '../../components/Modal'
+import { useReactToPrint } from 'react-to-print'
 
 const useAuth = () => {
     const navigate = useNavigate()
@@ -13,51 +14,172 @@ const useAuth = () => {
     return { handleUnauthorized }
 }
 
-export default function MemberIndex(){
-    const [members, setMembers] = useState([])
-    const [state, setState] = useState({
-        error: null,
-        isLoaded: false,
-        alert: ''
-    })
-    const [isModalOpen, setIsModalOpen] = useState(false)
-    const [modalMode, setModalMode] = useState('add') // 'add', 'edit', 'detail'
-    const [selectedMember, setSelectedMember] = useState(null)
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-    const [deleteMemberId, setDeleteMemberId] = useState(null)
-    const [newMember, setNewMember] = useState({
-        no_ktp: '',
-        nama: '',
-        alamat: '',
-        tgl_lahir: ''
-    })
+export default function MemberIndex() {
+    const [members, setMembers] = useState([]);
+    const [state, setState] = useState({ error: null, isLoaded: false, alert: '' });
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalMode, setModalMode] = useState('add');
+    const [selectedMember, setSelectedMember] = useState(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deleteMemberId, setDeleteMemberId] = useState(null);
+    const [newMember, setNewMember] = useState({ no_ktp: '', nama: '', alamat: '', tgl_lahir: '' });
+    const componentPDF = useRef();
+    const { handleUnauthorized } = useAuth();
 
-    const { handleUnauthorized } = useAuth()
-    const navigate = useNavigate()
+    useEffect(() => {
+        fetchMember();
+        fetchBook();
+        fetchBorrowHistory();
+    },
+        []);
 
     const fetchMember = () => {
         axios.get(`${API_URL}/member`)
             .then(res => {
-                if (res.data && Array.isArray(res.data)) {
-                    setMembers(res.data)
-                } else {
-                    setMembers([])
-                }
-                setState(prev => ({ ...prev, isLoaded: true }))
+                setMembers(Array.isArray(res.data) ? res.data : []);
+                setState(prev => ({ ...prev, isLoaded: true }));
             })
             .catch(err => {
                 err.response?.status === 401
                     ? handleUnauthorized()
-                    : setState(prev => ({
-                        ...prev,
-                        error: err.response?.data || { message: "Failed to fetch data." }
-                    }))
-            })
+                    : setState(prev => ({ ...prev, error: err.response?.data || { message: 'Failed to fetch data.' } }));
+            });
+    };
+
+    const handleAddMember = () => {
+        setModalMode('add');
+        setSelectedMember(null);
+        setNewMember({ no_ktp: '', nama: '', alamat: '', tgl_lahir: '' });
+        setIsModalOpen(true);
+    };
+
+    const handleEditMember = (member) => {
+        setModalMode('edit');
+        setSelectedMember(member);
+        setNewMember({
+            no_ktp: member.no_ktp,
+            nama: member.nama,
+            alamat: member.alamat,
+            tgl_lahir: member.tgl_lahir.split('T')[0]
+        });
+        setIsModalOpen(true);
+    };
+
+    const handleDetailMember = (member) => {
+        setModalMode('detail');
+        setSelectedMember(member);
+        setNewMember({
+            no_ktp: member.no_ktp,
+            nama: member.nama,
+            alamat: member.alamat,
+            tgl_lahir: member.tgl_lahir.split('T')[0]
+        });
+        setIsModalOpen(true);
+    };
+
+    const openDeleteModal = (id) => {
+        setDeleteMemberId(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleDeleteMember = async () => {
+        try {
+            await axios.delete(`${API_URL}/member/${deleteMemberId}`);
+            setState(prev => ({ ...prev, alert: 'Member berhasil dihapus!' }));
+            fetchMember();
+            setIsDeleteModalOpen(false);
+        } catch (err) {
+            err.response?.status === 401
+                ? handleUnauthorized()
+                : setState(prev => ({ ...prev, error: err.response?.data || { message: 'Gagal menghapus member.' } }));
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = modalMode === 'edit'
+                ? await axios.put(`${API_URL}/member/${selectedMember.id}`, newMember)
+                : await axios.post(`${API_URL}/member`, newMember);
+
+            if (response.data) {
+                setState(prev => ({
+                    ...prev,
+                    alert: `Member berhasil ${modalMode === 'edit' ? 'diperbarui' : 'ditambahkan'}!`
+                }));
+                fetchMember();
+                handleCloseModal();
+            }
+        } catch (err) {
+            err.response?.status === 401
+                ? handleUnauthorized()
+                : setState(prev => ({
+                    ...prev,
+                    error: err.response?.data || { message: `Gagal ${modalMode === 'edit' ? 'memperbarui' : 'menambahkan'} member.` }
+                }));
+        }
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setNewMember({ no_ktp: '', nama: '', alamat: '', tgl_lahir: '' });
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setNewMember(prev => ({ ...prev, [name]: value }));
+    };
+
+    const [borrowHistory, setBorrowHistory] = useState([]);
+    const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+    const [historyLoading, setHistoryLoading] = useState(false);
+    const [selectedMemberId, setSelectedMemberId] = useState(null);
+
+    const fetchBorrowHistory = async (memberId) => {
+        setHistoryLoading(true);
+        try {
+            const response = await axios.get(`${API_URL}/peminjaman/${memberId}`);
+            setBorrowHistory(Array.isArray(response.data.data) ? response.data.data : []);
+        } catch (err) {
+            err.response?.status === 401
+                ? handleUnauthorized()
+                : setState(prev => ({
+                    ...prev,
+                    error: err.response?.data || { message: 'Gagal memuat riwayat peminjaman.' }
+                }));
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
+    const [books, setBooks] = useState([]);
+    const fetchBook = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/buku`)
+            setBooks(Array.isArray(res.data) ? res.data : [])
+            setState(prev => ({ ...prev, isLoaded: true }))
+        } catch (err) {
+            err.response?.status === 401
+                ? handleUnauthorized()
+                : setState(prev => ({
+                    ...prev,
+                    error: err.response?.data || { message: "Failed to fetch data." },
+                    isLoaded: true
+                }))
+        }
     }
 
-    useEffect(() => {
-        fetchMember()
-    }, [])
+    const handleShowBorrowHistory = (member) => {
+        setSelectedMemberId(member.id);
+        setSelectedMember(member);
+        fetchBorrowHistory(member.id);
+        setIsHistoryModalOpen(true);
+    };
+
+    const handleCloseHistoryModal = () => {
+        setIsHistoryModalOpen(false);
+        setBorrowHistory([]);
+        setSelectedMemberId(null);
+    };
 
     if (!state.isLoaded) {
         return (
@@ -65,108 +187,6 @@ export default function MemberIndex(){
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-600"></div>
             </div>
         )
-    }
-
-    const handleAddMember = () => {
-        setModalMode('add')
-        setSelectedMember(null)
-        setNewMember({
-            no_ktp: '',
-            nama: '',
-            alamat: '',
-            tgl_lahir: ''
-        })
-        setIsModalOpen(true)
-    }
-
-    const handleEditMember = (member) => {
-        setModalMode('edit')
-        setSelectedMember(member)
-        setNewMember({
-            no_ktp: member.no_ktp,
-            nama: member.nama,
-            alamat: member.alamat,
-            tgl_lahir: member.tgl_lahir.split('T')[0]
-        })
-        setIsModalOpen(true)
-    }
-
-    const handleDetailMember = (member) => {
-        setModalMode('detail')
-        setSelectedMember(member)
-        setNewMember({
-            no_ktp: member.no_ktp,
-            nama: member.nama,
-            alamat: member.alamat,
-            tgl_lahir: member.tgl_lahir.split('T')[0]
-        })
-        setIsModalOpen(true)
-    }
-
-    const openDeleteModal = (id) => {
-        setDeleteMemberId(id)
-        setIsDeleteModalOpen(true)
-    }
-
-    const handleDeleteMember = async () => {
-        try {
-            await axios.delete(`${API_URL}/member/${deleteMemberId}`)
-            setState(prev => ({ ...prev, alert: 'Member berhasil dihapus!' }))
-            fetchMember()
-            setIsDeleteModalOpen(false)
-        } catch (err) {
-            err.response?.status === 401
-                ? handleUnauthorized()
-                : setState(prev => ({
-                    ...prev,
-                    error: err.response?.data || { message: "Gagal menghapus member." }
-                }))
-        }
-    }
-
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        try {
-            let response
-            if (modalMode === 'edit') {
-                response = await axios.put(`${API_URL}/member/${selectedMember.id}`, newMember)
-            } else {
-                response = await axios.post(`${API_URL}/member`, newMember)
-            }
-
-            if (response.data) {
-                setState(prev => ({
-                    ...prev,
-                    alert: `Member berhasil ${modalMode === 'edit' ? 'diperbarui' : 'ditambahkan'}!`
-                }))
-                fetchMember()
-                handleCloseModal()
-            }
-        } catch (err) {
-            err.response?.status === 401
-                ? handleUnauthorized()
-                : setState(prev => ({
-                    ...prev,
-                    error: err.response?.data || {
-                        message: `Gagal ${modalMode === 'edit' ? 'memperbarui' : 'menambahkan'} member.`
-                    }
-                }))
-        }
-    }
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false)
-        setNewMember({
-            no_ktp: '',
-            nama: '',
-            alamat: '',
-            tgl_lahir: ''
-        })
-    }
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target
-        setNewMember(prev => ({ ...prev, [name]: value }))
     }
 
     return (
@@ -203,7 +223,7 @@ export default function MemberIndex(){
                                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
                                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alamat</th>
                                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Lahir</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-winder">Action</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -225,6 +245,12 @@ export default function MemberIndex(){
                                         </button>
                                         <button onClick={() => openDeleteModal(member.id)} className="text-red-600 hover:text-red-800">
                                             Delete
+                                        </button>
+                                        <button
+                                            onClick={() => handleShowBorrowHistory(member)}
+                                            className="text-purple-600 hover:text-purple-800"
+                                        >
+                                            Riwayat Peminjaman
                                         </button>
                                     </td>
                                 </tr>
@@ -329,6 +355,71 @@ export default function MemberIndex(){
                 <p className="text-gray-600">
                     Apakah Anda yakin ingin menghapus member ini? Tindakan ini tidak dapat dibatalkan.
                 </p>
+            </Modal>
+            <Modal
+                isOpen={isHistoryModalOpen}
+                onClose={handleCloseHistoryModal}
+                title={`Riwayat Peminjaman - ${selectedMember?.nama || ''}`}
+                size="xl"
+            >
+                {historyLoading ? (
+                    <div className="flex justify-center items-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-600"></div>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left text-gray-500">
+                            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th scope="col" className="px-6 py-3">No</th>
+                                    <th scope="col" className="px-6 py-3">Judul Buku</th>
+                                    <th scope="col" className="px-6 py-3">Tanggal Pinjam</th>
+                                    <th scope="col" className="px-6 py-3">Tanggal Kembali</th>
+                                    <th scope="col" className="px-6 py-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {borrowHistory.length === 0 ? (
+                                    <tr className="bg-white border-b">
+                                        <td colSpan="5" className="px-6 py-4 text-center">
+                                            Tidak ada riwayat peminjaman
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    borrowHistory.map((history, index) => {
+                                        const book = books.find(b => b.id === history.id_buku);
+                                        return (
+                                            <tr key={history.id} className="bg-white border-b hover:bg-gray-50">
+                                                <td className="px-6 py-4">{index + 1}</td>
+                                                <td className="px-6 py-4">{book ? `${book.judul} - ${book.id}` : history.id_buku}</td>
+                                                <td className="px-6 py-4">
+                                                    {new Date(history.tgl_pinjam).toLocaleDateString('id-ID')}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    {history.tgl_pengembalian ?
+                                                        new Date(history.tgl_pengembalian).toLocaleDateString('id-ID') :
+                                                        '-'
+                                                    }
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${history.status === 0
+                                                        ? 'bg-yellow-100 text-yellow-800'
+                                                        : 'bg-green-100 text-green-800'
+                                                        }`}>
+                                                        {history.status === 0 ? 'Belum Dikembalikan' : 'Sudah Dikembalikan'}
+                                                    </span>
+                                                </td>
+                                            </tr>
+
+                                        )
+                                    })
+                                )}
+                            </tbody>
+                        </table>
+
+
+                    </div>
+                )}
             </Modal>
         </div>
     )

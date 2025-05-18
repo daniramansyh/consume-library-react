@@ -34,7 +34,6 @@ export default function BukuIndex() {
     })
 
     const { handleUnauthorized } = useAuth()
-    const navigate = useNavigate()
 
     const fetchBook = async () => {
         try {
@@ -346,7 +345,7 @@ export default function BukuIndex() {
                     }
                 >
                     <p className="text-gray-600">
-                        Apakah Anda yakin ingin menghapus member ini? Tindakan ini tidak dapat dibatalkan.
+                        Apakah Anda yakin ingin menghapus buku ini? Tindakan ini tidak dapat dibatalkan.
                     </p>
                 </Modal>
             </div>

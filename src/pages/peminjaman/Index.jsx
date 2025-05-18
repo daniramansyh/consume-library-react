@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_URL } from '../../constant';
 import Modal from '../../components/Modal';
+import * as XLSX from 'xlsx';
 
 export default function PeminjamanIndex() {
     const navigate = useNavigate();
@@ -37,16 +38,37 @@ export default function PeminjamanIndex() {
         }));
     };
 
-    // Handler untuk submit form
     const handleSubmitAdd = async (e) => {
         e.preventDefault();
         try {
+            const selectedBook = books.find(book => book.id === parseInt(newPeminjaman.id_buku));
+            if (!selectedBook) {
+                setState(prev => ({
+                    ...prev,
+                    error: { message: 'Buku tidak ditemukan.' }
+                }));
+                return;
+            }
+            
+            if (selectedBook.stok <= 0) {
+                setState(prev => ({
+                    ...prev,
+                    error: { message: 'Stok buku tidak tersedia.' }
+                }));
+                return;
+            }
             await axios.post(`${API_URL}/peminjaman`, newPeminjaman);
+            await axios.put(`${API_URL}/buku/${newPeminjaman.id_buku}`, {
+                ...selectedBook,
+                stok: selectedBook.stok - 1
+            });
             setState(prev => ({
                 ...prev,
                 alert: 'Peminjaman berhasil ditambahkan'
             }));
             fetchPeminjaman();
+            fetchBooks();
+            
             setIsAddModalOpen(false);
             setNewPeminjaman({
                 id_member: '',
@@ -66,7 +88,6 @@ export default function PeminjamanIndex() {
         }
     };
 
-    // Handler untuk membuka/menutup modal
     const openAddModal = () => setIsAddModalOpen(true);
     const closeAddModal = () => setIsAddModalOpen(false);
 
@@ -185,6 +206,8 @@ export default function PeminjamanIndex() {
         if (!selectedReturn) return;
 
         try {
+            const selectedBook = books.find(book => book.id === selectedReturn.id_buku);
+            
             // Jika form denda ditampilkan dan ada denda
             if (returnInfo.showDendaForm && returnInfo.denda > 0) {
                 await axios.post(`${API_URL}/denda`, {
@@ -193,6 +216,20 @@ export default function PeminjamanIndex() {
                     jumlah_denda: returnInfo.denda,
                     jenis_denda: returnInfo.jenis_denda,
                     deskripsi: returnInfo.deskripsi
+                });
+                
+                // Jika jenis denda bukan kerusakan, tambah stok buku
+                if (returnInfo.jenis_denda !== 'kerusakan' && selectedBook) {
+                    await axios.put(`${API_URL}/buku/${selectedReturn.id_buku}`, {
+                        ...selectedBook,
+                        stok: selectedBook.stok + 1
+                    });
+                }
+            } else if (selectedBook) {
+                // Jika tidak ada denda, tambah stok buku
+                await axios.put(`${API_URL}/buku/${selectedReturn.id_buku}`, {
+                    ...selectedBook,
+                    stok: selectedBook.stok + 1
                 });
             }
 
@@ -204,8 +241,12 @@ export default function PeminjamanIndex() {
                     ? `Buku berhasil dikembalikan dengan denda Rp ${returnInfo.denda.toLocaleString('id-ID')}`
                     : 'Buku berhasil dikembalikan'
             }));
+            
             closeReturnModal();
+            
+            // Refresh data
             fetchPeminjaman();
+            fetchBooks();
         } catch (err) {
             setState(prev => ({
                 ...prev,
@@ -230,6 +271,33 @@ export default function PeminjamanIndex() {
         );
     }
 
+    const handleExportToExcel = () => {
+        // Persiapkan data untuk export
+        const dataToExport = borrows.map((item, index) => {
+            const member = members.find(m => m.id === item.id_member);
+            const book = books.find(b => b.id === item.id_buku);
+            
+            return {
+                'No': index + 1,
+                'Nama Member': member ? member.nama : item.id_member,
+                'Judul Buku': book ? book.judul : item.id_buku,
+                'Tanggal Pinjam': new Date(item.tgl_pinjam).toLocaleDateString('id-ID'),
+                'Tanggal Pengembalian': item.tgl_pengembalian ? new Date(item.tgl_pengembalian).toLocaleDateString('id-ID') : '-',
+                'Status': item.status_pengembalian ? 'Sudah Dikembalikan' : 'Belum Dikembalikan'
+            };
+        });
+
+        // Buat workbook baru
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(dataToExport);
+
+        // Tambahkan worksheet ke workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'Data Peminjaman');
+
+        // Generate file Excel dan download
+        XLSX.writeFile(wb, `Data_Peminjaman.pdf`);
+    };
+
     return (
         <div className="p-6 lg:p-8">
             <div className="max-w-full mx-auto">
@@ -246,13 +314,22 @@ export default function PeminjamanIndex() {
 
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
                     <h1 className="text-2xl font-bold text-gray-800 mb-4 sm:mb-0">Daftar Peminjaman</h1>
-                    <button
-                        onClick={openAddModal}
-                        className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
-                    >
-                        <i className="bi bi-plus-circle mr-2"></i>
-                        <span>Tambah Peminjaman</span>
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleExportToExcel}
+                            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+                        >
+                            <i className="bi bi-file-earmark-excel mr-2"></i>
+                            <span>Export Excel</span>
+                        </button>
+                        <button
+                            onClick={openAddModal}
+                            className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
+                        >
+                            <i className="bi bi-plus-circle mr-2"></i>
+                            <span>Tambah Peminjaman</span>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Modal Tambah Peminjaman */}

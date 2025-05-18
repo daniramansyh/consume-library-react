@@ -13,6 +13,11 @@ const PrivateRoute = ({ children }) => {
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
+const PublicRoute = ({ children }) => {
+  const isAuthenticated = localStorage.getItem("access_token")!== null;
+  return isAuthenticated? <Navigate to="/dashboard" /> : children;
+};
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -20,11 +25,19 @@ export const router = createBrowserRouter([
   },
   {
     path: "/register",
-    element: <Register />
+    element: (
+      <PublicRoute>
+        <Register />
+      </PublicRoute>
+    )
   },
   {
     path: "/login",
-    element: <Login />
+    element: (
+      <PublicRoute>
+        <Login />
+      </PublicRoute>
+    )
   },
   {
     path: "/dashboard",
@@ -61,3 +74,4 @@ export const router = createBrowserRouter([
     ]
   }
 ]);
+
