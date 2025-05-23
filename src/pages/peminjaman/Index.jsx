@@ -38,54 +38,64 @@ export default function PeminjamanIndex() {
         }));
     };
 
-    const handleSubmitAdd = async (e) => {
+    const handleSubmitAdd = (e) => {
         e.preventDefault();
-        try {
-            const selectedBook = books.find(book => book.id === parseInt(newPeminjaman.id_buku));
-            if (!selectedBook) {
-                setState(prev => ({
-                    ...prev,
-                    error: { message: 'Buku tidak ditemukan.' }
-                }));
-                return;
-            }
-            
-            if (selectedBook.stok <= 0) {
-                setState(prev => ({
-                    ...prev,
-                    error: { message: 'Stok buku tidak tersedia.' }
-                }));
-                return;
-            }
-            await axios.post(`${API_URL}/peminjaman`, newPeminjaman);
-            await axios.put(`${API_URL}/buku/${newPeminjaman.id_buku}`, {
-                ...selectedBook,
-                stok: selectedBook.stok - 1
-            });
+        const selectedBook = books.find(book => book.id === parseInt(newPeminjaman.id_buku));
+        
+        if (!selectedBook) {
             setState(prev => ({
                 ...prev,
-                alert: 'Peminjaman berhasil ditambahkan'
+                error: { message: 'Buku tidak ditemukan.' }
             }));
-            fetchPeminjaman();
-            fetchBooks();
-            
-            setIsAddModalOpen(false);
-            setNewPeminjaman({
-                id_member: '',
-                id_buku: '',
-                tgl_pinjam: '',
-                tgl_pengembalian: ''
-            });
-        } catch (err) {
-            if (err.response?.status === 401) {
-                handleUnauthorized();
-            } else {
+            return;
+        }
+        
+        if (selectedBook.stok <= 0) {
+            setState(prev => ({
+                ...prev,
+                error: { message: 'Stok buku tidak tersedia.' }
+            }));
+            return;
+        }
+
+        // Add new borrowing record
+        axios.post(`${API_URL}/peminjaman`, newPeminjaman)
+            .then(() => {
+                // Update book stock
+                return axios.put(`${API_URL}/buku/${newPeminjaman.id_buku}`, {
+                    ...selectedBook,
+                    stok: selectedBook.stok - 1
+                });
+            })
+            .then(() => {
                 setState(prev => ({
                     ...prev,
-                    error: err.response?.data || { message: 'Gagal menambahkan peminjaman.' }
+                    alert: 'Peminjaman berhasil ditambahkan'
                 }));
-            }
-        }
+                
+                // Refresh data
+                fetchPeminjaman();
+                fetchBooks();
+                
+                // Reset form and close modal
+                setIsAddModalOpen(false);
+                setNewPeminjaman({
+                    id_member: '',
+                    id_buku: '',
+                    tgl_pinjam: '',
+                    tgl_pengembalian: ''
+                });
+            })
+            .catch(err => {
+                if (err.response?.status === 401) {
+                    handleUnauthorized();
+                } else {
+                    setState(prev => ({
+                        ...prev,
+                        error: err.response?.data || { message: 'Gagal menambahkan peminjaman.' }
+                    }));
+                }
+            });
     };
 
     const openAddModal = () => setIsAddModalOpen(true);

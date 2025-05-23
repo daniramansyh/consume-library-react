@@ -45,7 +45,7 @@ export default function BukuIndex() {
                 ? handleUnauthorized()
                 : setState(prev => ({
                     ...prev,
-                    error: err.response?.data || { message: "Failed to fetch data." },
+                    error: err.response?.data || { message: "Gagal mengambil data buku." },
                     isLoaded: true
                 }))
         }
@@ -53,6 +53,7 @@ export default function BukuIndex() {
 
     useEffect(() => {
         fetchBook()
+        window.scrollTo(0, 0);
     }, [])
 
     useEffect(() => {
@@ -165,88 +166,113 @@ export default function BukuIndex() {
 
     if (!state.isLoaded) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-600"></div>
+            <div className="flex items-center justify-center min-h-screen bg-gray-50">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-400"></div>
             </div>
         )
     }
 
     return (
-        <div className="p-6 lg:p-8">
-            <div className="max-w-full mx-auto">
+        <div className="p-6 lg:p-8 bg-gray-50 min-h-screen">
+            <div className="max-w-7xl mx-auto">
                 {state.alert && (
-                    <div className="mb-4 p-4 bg-green-100 border-l-4 border-green-500 text-green-700">
+                    <div className="mb-6 p-4 bg-gray-100 border-l-4 border-gray-500 text-gray-700 rounded-r-md shadow-sm transition-all duration-300 ease-in-out">
                         {state.alert}
                     </div>
                 )}
                 {state.error && (
-                    <div className="mb-4 p-4 bg-red-100 border-l-4 border-red-500 text-red-700">
+                    <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 text-red-700 rounded-r-md shadow-sm">
                         {state.error.message}
                     </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-4 sm:mb-0">Daftar Buku</h1>
+                <div className="flex flex-col sm:flex-row justify-between items-center mb-8">
+                    <h1 className="text-3xl font-serif font-bold text-gray-700 mb-4 sm:mb-0">
+                        <span className="border-b-2 border-gray-400 pb-1">Katalog Buku</span>
+                    </h1>
                     <button
                         onClick={handleAddBook}
-                        className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
+                        className="flex items-center px-5 py-2.5 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors duration-300 shadow-sm"
                     >
-                        <i className="bi bi-plus-circle mr-2"></i>
-                        <span>Tambah Buku Baru</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>Tambah Buku</span>
                     </button>
                 </div>
 
-                <div className="overflow-x-auto bg-white rounded-lg shadow">
-                    <table className="w-full table-auto divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                <div className="overflow-hidden bg-white rounded-lg shadow-md">
+                    <table className="w-full table-auto">
+                        <thead className="bg-gray-100 text-gray-700">
                             <tr>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
-                                <th className="px-3 py-2">No. Rak</th>
-                                <th className="px-3 py-2">Judul</th>
-                                <th className="px-3 py-2">Pengarang</th>
-                                <th className="px-3 py-2">Tahun</th>
-                                <th className="px-3 py-2">Penerbit</th>
-                                <th className="px-3 py-2">Stok</th>
-                                <th className="px-3 py-2">Detail</th>
-                                <th className="px-3 py-2">Action</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">No</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">No. Rak</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Judul</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Pengarang</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Tahun</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Penerbit</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Stok</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Detail</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {books.length > 0 ? books.map((book, index) => (
-                                <tr key={book.id} className="hover:bg-gray-50">
-                                    <td className="px-3 py-2">{index + 1}</td>
-                                    <td className="px-3 py-2">{book.no_rak}</td>
-                                    <td className="px-3 py-2">{book.judul}</td>
-                                    <td className="px-3 py-2">{book.pengarang}</td>
-                                    <td className="px-3 py-2">{book.tahun_terbit}</td>
-                                    <td className="px-3 py-2">{book.penerbit}</td>
-                                    <td className="px-3 py-2">{book.stok}</td>
-                                    <td className="px-3 py-2 max-w-xs truncate">{book.detail}</td>
-                                    <td className="px-3 py-2 space-x-2">
-                                        <button
-                                            onClick={() => handleDetailBook(book)}
-                                            className="text-blue-600 hover:text-blue-800"
-                                        >
-                                            Detail
-                                        </button>
-                                        <button
-                                            onClick={() => handleEditBook(book)}
-                                            className="text-green-600 hover:text-green-800"
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            onClick={() => openDeleteModal(book.id)}
-                                            className="text-red-600 hover:text-red-800"
-                                        >
-                                            Delete
-                                        </button>
+                                <tr key={book.id} className="hover:bg-gray-50 transition-colors duration-150">
+                                    <td className="px-4 py-3 whitespace-nowrap">{index + 1}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap">{book.no_rak}</td>
+                                    <td className="px-4 py-3 font-medium text-gray-700">{book.judul}</td>
+                                    <td className="px-4 py-3">{book.pengarang}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap">{book.tahun_terbit}</td>
+                                    <td className="px-4 py-3">{book.penerbit}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${parseInt(book.stok) > 0 ? 'bg-gray-100 text-gray-700' : 'bg-red-100 text-red-700'}`}>
+                                            {book.stok}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3 max-w-xs truncate text-gray-500 text-sm">{book.detail}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        <div className="flex space-x-2">
+                                            <button
+                                                onClick={() => handleDetailBook(book)}
+                                                className="text-gray-500 hover:text-gray-700 transition-colors duration-150"
+                                                title="Detail"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                onClick={() => handleEditBook(book)}
+                                                className="text-gray-500 hover:text-gray-700 transition-colors duration-150"
+                                                title="Edit"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                onClick={() => openDeleteModal(book.id)}
+                                                className="text-gray-500 hover:text-red-600 transition-colors duration-150"
+                                                title="Hapus"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             )) : (
                                 <tr>
-                                    <td colSpan="9" className="px-3 py-2 text-center text-sm text-gray-500">
-                                        Tidak ada buku yang tersedia saat ini.
+                                    <td colSpan="9" className="px-4 py-6 text-center text-gray-500 italic">
+                                        <div className="flex flex-col items-center justify-center space-y-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                            </svg>
+                                            <span>Tidak ada buku yang tersedia saat ini.</span>
+                                        </div>
                                     </td>
                                 </tr>
                             )}
@@ -264,7 +290,7 @@ export default function BukuIndex() {
                             <button
                                 type="button"
                                 onClick={handleCloseModal}
-                                className="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 focus:z-10 focus:ring-4 focus:ring-gray-100"
+                                className="py-2.5 px-5 ms-3 text-sm font-medium text-gray-700 bg-white rounded-md border border-gray-300 hover:bg-gray-50 transition-colors duration-150 shadow-sm"
                             >
                                 {modalMode === 'detail' ? 'Tutup' : 'Batal'}
                             </button>
@@ -272,7 +298,7 @@ export default function BukuIndex() {
                                 <button
                                     type="submit"
                                     form="bookForm"
-                                    className="text-white bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                                    className="text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-150 shadow-sm font-medium rounded-md text-sm px-5 py-2.5 text-center"
                                 >
                                     {modalMode === 'edit' ? 'Perbarui' : 'Simpan'}
                                 </button>
@@ -280,45 +306,106 @@ export default function BukuIndex() {
                         </>
                     }
                 >
-                    <form id="bookForm" onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {[
-                            { label: 'No. Rak', name: 'no_rak', type: 'text' },
-                            { label: 'Judul', name: 'judul', type: 'text' },
-                            { label: 'Pengarang', name: 'pengarang', type: 'text' },
-                            { label: 'Tahun Terbit', name: 'tahun_terbit', type: 'number', min: 1000, max: new Date().getFullYear() },
-                            { label: 'Penerbit', name: 'penerbit', type: 'text' },
-                            { label: 'Stok', name: 'stok', type: 'number', min: 0 },
-                        ].map(({ label, name, type, ...rest }) => (
-                            <div key={name}>
-                                <label className="block mb-2 text-sm font-medium text-gray-900">
-                                    {label}
+                    {modalMode === 'detail' ? (
+                        <div className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100">
+                            <div className="p-5 bg-gray-50 border-b border-gray-100">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h2 className="text-2xl font-serif font-bold text-gray-800 mb-1">{newBook.judul}</h2>
+                                        <p className="text-gray-600 text-sm">Oleh: {newBook.pengarang}</p>
+                                    </div>
+                                    <span className={`px-3 py-1 text-sm font-medium rounded-full ${parseInt(newBook.stok) > 0 ? 'bg-gray-100 text-gray-700' : 'bg-red-100 text-red-700'}`}>
+                                        {parseInt(newBook.stok) > 0 ? `Tersedia: ${newBook.stok}` : 'Stok Habis'}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div className="p-5">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <div className="mb-4">
+                                            <h3 className="text-sm font-medium text-gray-500 mb-1">Informasi Penerbitan</h3>
+                                            <div className="bg-gray-50 p-4 rounded-md">
+                                                <div className="flex items-center mb-2">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                    <span className="text-gray-700">Tahun Terbit: {newBook.tahun_terbit}</span>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                    </svg>
+                                                    <span className="text-gray-700">Penerbit: {newBook.penerbit}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <h3 className="text-sm font-medium text-gray-500 mb-1">Lokasi</h3>
+                                            <div className="bg-gray-50 p-4 rounded-md">
+                                                <div className="flex items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                    </svg>
+                                                    <span className="text-gray-700">No. Rak: {newBook.no_rak}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-500 mb-1">Deskripsi</h3>
+                                        <div className="bg-gray-50 p-4 rounded-md h-full">
+                                            <p className="text-gray-700 whitespace-pre-line">
+                                                {newBook.detail || "Tidak ada deskripsi untuk buku ini."}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <form id="bookForm" onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            {[
+                                { label: 'No. Rak', name: 'no_rak', type: 'text' },
+                                { label: 'Judul', name: 'judul', type: 'text' },
+                                { label: 'Pengarang', name: 'pengarang', type: 'text' },
+                                { label: 'Tahun Terbit', name: 'tahun_terbit', type: 'number', min: 1000, max: new Date().getFullYear() },
+                                { label: 'Penerbit', name: 'penerbit', type: 'text' },
+                                { label: 'Stok', name: 'stok', type: 'number', min: 0 },
+                            ].map(({ label, name, type, ...rest }) => (
+                                <div key={name} className="relative">
+                                    <label className="block mb-2 text-sm font-medium text-gray-700">
+                                        {label}
+                                    </label>
+                                    <input
+                                        type={type}
+                                        name={name}
+                                        value={newBook[name]}
+                                        onChange={handleInputChange}
+                                        className="bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-md focus:ring-2 focus:ring-gray-400 focus:border-gray-400 block w-full p-2.5 transition-all duration-150"
+                                        required
+                                        disabled={modalMode === 'detail'}
+                                        {...rest}
+                                    />
+                                </div>
+                            ))}
+                            <div className="md:col-span-2">
+                                <label className="block mb-2 text-sm font-medium text-gray-700">
+                                    Detail
                                 </label>
-                                <input
-                                    type={type}
-                                    name={name}
-                                    value={newBook[name]}
+                                <textarea
+                                    name="detail"
+                                    value={newBook.detail}
                                     onChange={handleInputChange}
-                                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5"
-                                    required
+                                    className="bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-md focus:ring-2 focus:ring-gray-400 focus:border-gray-400 block w-full p-2.5 transition-all duration-150"
+                                    rows="4"
                                     disabled={modalMode === 'detail'}
-                                    {...rest}
                                 />
                             </div>
-                        ))}
-                        <div className="md:col-span-2">
-                            <label className="block mb-2 text-sm font-medium text-gray-900">
-                                Detail
-                            </label>
-                            <textarea
-                                name="detail"
-                                value={newBook.detail}
-                                onChange={handleInputChange}
-                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5"
-                                rows="3"
-                                disabled={modalMode === 'detail'}
-                            />
-                        </div>
-                    </form>
+                        </form>
+                    )}
                 </Modal>
                 <Modal
                     isOpen={isDeleteModalOpen}
@@ -330,28 +417,32 @@ export default function BukuIndex() {
                             <button
                                 type="button"
                                 onClick={() => setIsDeleteModalOpen(false)}
-                                className="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 focus:ring-4 focus:ring-gray-100"
+                                className="py-2.5 px-5 ms-3 text-sm font-medium text-gray-700 bg-white rounded-md border border-gray-300 hover:bg-gray-50 transition-colors duration-150 shadow-sm"
                             >
-                                Batal
+                                {modalMode === 'detail' ? 'Tutup' : 'Batal'}
                             </button>
                             <button
                                 type="button"
                                 onClick={handleDeleteBook}
-                                className="text-white bg-red-600 hover:bg-red-700 font-medium rounded-lg text-sm px-5 py-2.5"
+                                className="text-white bg-red-500 hover:bg-red-600 transition-colors duration-150 shadow-sm font-medium rounded-md text-sm px-5 py-2.5"
                             >
                                 Hapus
                             </button>
                         </>
                     }
                 >
-                    <p className="text-gray-600">
-                        Apakah Anda yakin ingin menghapus buku ini? Tindakan ini tidak dapat dibatalkan.
-                    </p>
+                    <div className="flex items-center space-x-4 p-2">
+                        <div className="flex-shrink-0 bg-red-100 rounded-full p-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <p className="text-gray-600">
+                            Apakah Anda yakin ingin menghapus buku ini? Tindakan ini tidak dapat dibatalkan.
+                        </p>
+                    </div>
                 </Modal>
             </div>
         </div>
-
     )
-
-
 }

@@ -8,7 +8,8 @@ import {
   Bars3Icon,
   XMarkIcon,
   BanknotesIcon,
-  ClipboardDocumentIcon
+  ClipboardDocumentIcon,
+  BookmarkIcon
 } from "@heroicons/react/24/outline";
 
 const menuItems = [
@@ -68,28 +69,30 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 fixed w-full z-30 top-0">
+    <nav className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-indigo-100 shadow-sm fixed w-full z-30 top-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link to="/dashboard" className="flex items-center">
-              <span className="ml-2 text-xl font-semibold text-gray-800">Perpus Digital</span>
+            <Link to="/dashboard" className="flex items-center group">
+              <BookmarkIcon className="h-8 w-8 text-indigo-600 group-hover:text-indigo-700 transition-colors duration-200" />
+              <span className="ml-2 text-xl font-serif font-semibold text-gray-800 group-hover:text-indigo-700 transition-colors duration-200">Perpus Digital</span>
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-1">
             {menuItems.map((item) => {
               const isActive = location.pathname === item.to;
               return (
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
+                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 mx-1
                     ${isActive
-                      ? 'bg-gray-100 text-gray-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                      ? 'bg-indigo-100 text-indigo-800 shadow-sm'
+                      : 'text-gray-700 hover:bg-indigo-50 hover:text-indigo-700'}`}
+                  title={item.description}
                 >
-                  <div className="w-5 h-5 mr-2">
+                  <div className={`w-5 h-5 mr-2 ${isActive ? 'text-indigo-600' : 'text-gray-500'}`}>
                     {item.icon}
                   </div>
                   {item.label}
@@ -98,7 +101,8 @@ const Navbar = () => {
             })}
             <button
               onClick={handleLogout}
-              className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors duration-200"
+              className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 ml-2"
+              title="Keluar dari aplikasi"
             >
               <ArrowLeftOnRectangleIcon className="w-5 h-5 mr-2" />
               Logout
@@ -108,7 +112,7 @@ const Navbar = () => {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+              className="inline-flex items-center justify-center p-2 rounded-md text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors duration-200"
               aria-expanded="false"
             >
               {isOpen ? (
@@ -122,23 +126,26 @@ const Navbar = () => {
       </div>
 
       <div className={`md:hidden ${isOpen ? 'block' : 'hidden'}`}>
-        <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-b border-gray-200">
+        <div className="px-2 pt-2 pb-3 space-y-1 bg-white shadow-lg rounded-b-lg mx-2 mt-1 border border-indigo-100">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.to;
             return (
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex items-center px-3 py-2 rounded-md text-base font-medium
+                className={`flex items-center px-3 py-3 rounded-md text-base font-medium transition-all duration-200
                   ${isActive
-                    ? 'bg-gray-100 text-gray-900'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                    ? 'bg-indigo-50 text-indigo-800'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-700'}`}
                 onClick={() => setIsOpen(false)}
               >
-                <div className="w-5 h-5 mr-2">
+                <div className={`w-5 h-5 mr-3 ${isActive ? 'text-indigo-600' : 'text-gray-500'}`}>
                   {item.icon}
                 </div>
-                {item.label}
+                <div>
+                  <div>{item.label}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{item.description}</div>
+                </div>
               </Link>
             );
           })}
@@ -147,10 +154,13 @@ const Navbar = () => {
               setIsOpen(false);
               handleLogout();
             }}
-            className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50 hover:text-red-700"
+            className="flex items-center w-full px-3 py-3 rounded-md text-base font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200"
           >
-            <ArrowLeftOnRectangleIcon className="w-5 h-5 mr-2" />
-            Logout
+            <ArrowLeftOnRectangleIcon className="w-5 h-5 mr-3" />
+            <div>
+              <div>Logout</div>
+              <div className="text-xs text-gray-500 mt-0.5">Keluar dari aplikasi</div>
+            </div>
           </button>
         </div>
       </div>

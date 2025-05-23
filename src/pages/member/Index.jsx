@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { API_URL } from '../../constant'
 import axios from 'axios'
 import Modal from '../../components/Modal'
-import { useReactToPrint } from 'react-to-print'
+import { usePDF } from 'react-to-pdf';
 
 const useAuth = () => {
     const navigate = useNavigate()
@@ -180,6 +180,8 @@ export default function MemberIndex() {
         setBorrowHistory([]);
         setSelectedMemberId(null);
     };
+
+    const { toPDF, targetRef } = usePDF({ filename: 'page.pdf' });
 
     if (!state.isLoaded) {
         return (
@@ -361,27 +363,51 @@ export default function MemberIndex() {
                 onClose={handleCloseHistoryModal}
                 title={`Riwayat Peminjaman - ${selectedMember?.nama || ''}`}
                 size="xl"
+                footer={
+                    <>
+                     <button onClick={() => toPDF()}>Download PDF</button>
+                    </>
+                }
             >
                 {historyLoading ? (
                     <div className="flex justify-center items-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-600"></div>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left text-gray-500">
-                            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                    <div style={{
+                        overflowX: 'auto'
+                    }} ref={targetRef}>
+                        <table style={{
+                            width: '100%',
+                            fontSize: '0.875rem',
+                            textAlign: 'left',
+                            color: '#6b7280',
+                            borderCollapse: 'collapse'
+                        }}>
+                            <thead style={{
+                                fontSize: '0.75rem',
+                                color: '#374151',
+                                textTransform: 'uppercase',
+                                backgroundColor: '#f9fafb'
+                            }}>
                                 <tr>
-                                    <th scope="col" className="px-6 py-3">No</th>
-                                    <th scope="col" className="px-6 py-3">Judul Buku</th>
-                                    <th scope="col" className="px-6 py-3">Tanggal Pinjam</th>
-                                    <th scope="col" className="px-6 py-3">Tanggal Kembali</th>
-                                    <th scope="col" className="px-6 py-3">Status</th>
+                                    <th style={{padding: '0.75rem 1.5rem'}}>No</th>
+                                    <th style={{padding: '0.75rem 1.5rem'}}>Judul Buku</th>
+                                    <th style={{padding: '0.75rem 1.5rem'}}>Tanggal Pinjam</th>
+                                    <th style={{padding: '0.75rem 1.5rem'}}>Tanggal Kembali</th>
+                                    <th style={{padding: '0.75rem 1.5rem'}}>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {borrowHistory.length === 0 ? (
-                                    <tr className="bg-white border-b">
-                                        <td colSpan="5" className="px-6 py-4 text-center">
+                                    <tr style={{
+                                        backgroundColor: '#ffffff',
+                                        borderBottom: '1px solid #e5e7eb'
+                                    }}>
+                                        <td colSpan="5" style={{
+                                            padding: '1rem 1.5rem',
+                                            textAlign: 'center'
+                                        }}>
                                             Tidak ada riwayat peminjaman
                                         </td>
                                     </tr>
@@ -389,35 +415,42 @@ export default function MemberIndex() {
                                     borrowHistory.map((history, index) => {
                                         const book = books.find(b => b.id === history.id_buku);
                                         return (
-                                            <tr key={history.id} className="bg-white border-b hover:bg-gray-50">
-                                                <td className="px-6 py-4">{index + 1}</td>
-                                                <td className="px-6 py-4">{book ? `${book.judul} - ${book.id}` : history.id_buku}</td>
-                                                <td className="px-6 py-4">
+                                            <tr key={history.id} style={{
+                                                backgroundColor: '#ffffff',
+                                                borderBottom: '1px solid #e5e7eb',
+                                                ':hover': {
+                                                    backgroundColor: '#f9fafb'
+                                                }
+                                            }}>
+                                                <td style={{padding: '1rem 1.5rem'}}>{index + 1}</td>
+                                                <td style={{padding: '1rem 1.5rem'}}>{book ? `${book.judul} - ${book.id}` : history.id_buku}</td>
+                                                <td style={{padding: '1rem 1.5rem'}}>
                                                     {new Date(history.tgl_pinjam).toLocaleDateString('id-ID')}
                                                 </td>
-                                                <td className="px-6 py-4">
+                                                <td style={{padding: '1rem 1.5rem'}}>
                                                     {history.tgl_pengembalian ?
                                                         new Date(history.tgl_pengembalian).toLocaleDateString('id-ID') :
                                                         '-'
                                                     }
                                                 </td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${history.status === 0
-                                                        ? 'bg-yellow-100 text-yellow-800'
-                                                        : 'bg-green-100 text-green-800'
-                                                        }`}>
+                                                <td style={{padding: '1rem 1.5rem'}}>
+                                                    <span style={{
+                                                        padding: '0.25rem 0.5rem',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: '600',
+                                                        borderRadius: '9999px',
+                                                        backgroundColor: history.status === 0 ? '#fef3c7' : '#d1fae5',
+                                                        color: history.status === 0 ? '#92400e' : '#065f46'
+                                                    }}>
                                                         {history.status === 0 ? 'Belum Dikembalikan' : 'Sudah Dikembalikan'}
                                                     </span>
                                                 </td>
                                             </tr>
-
                                         )
                                     })
                                 )}
                             </tbody>
                         </table>
-
-
                     </div>
                 )}
             </Modal>

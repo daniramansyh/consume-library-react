@@ -5,6 +5,8 @@ import { router } from './routes/index.jsx';
 import axios from 'axios';
 import { ToastContainer } from 'react-toastify'; 
 import 'react-toastify/dist/ReactToastify.css'; 
+import './index.css'; // Import CSS file
+import 'flowbite-react'; // Import Flowbite React components
 
 // Konfigurasi axios interceptor untuk menambahkan header authorization
 axios.interceptors.request.use(
