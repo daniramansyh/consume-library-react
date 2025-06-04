@@ -3,6 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { API_URL } from '../../constant'
 import axios from 'axios'
 import Modal from '../../components/Modal'
+import {
+    BookOpenIcon,
+    PlusIcon,
+    EyeIcon,
+    PencilIcon,
+    TrashIcon
+} from "@heroicons/react/24/outline";
 
 const useAuth = () => {
     const navigate = useNavigate()
@@ -166,8 +173,8 @@ export default function BukuIndex() {
 
     if (!state.isLoaded) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-400"></div>
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
             </div>
         )
     }
@@ -186,17 +193,20 @@ export default function BukuIndex() {
                     </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row justify-between items-center mb-8">
-                    <h1 className="text-3xl font-serif font-bold text-gray-700 mb-4 sm:mb-0">
-                        <span className="border-b-2 border-gray-400 pb-1">Katalog Buku</span>
-                    </h1>
+                <div className="flex justify-between items-center mb-8 mt-8 px-4">
+                    <div>
+                        <h1 className="text-4xl font-serif font-bold text-gray-800 bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent">
+                            Katalog Buku
+                        </h1>
+                        <p className="text-gray-600 text-lg">
+                            Kelola koleksi buku perpustakaan dengan mudah dan efisien
+                        </p>
+                    </div>
                     <button
                         onClick={handleAddBook}
-                        className="flex items-center px-5 py-2.5 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors duration-300 shadow-sm"
+                        className="flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-500 text-white rounded-lg hover:from-indigo-700 hover:to-blue-600 transition-all duration-200 shadow-md hover:shadow-lg"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
+                        <PlusIcon className="w-6 h-6 mr-1"/>
                         <span>Tambah Buku</span>
                     </button>
                 </div>
@@ -226,7 +236,7 @@ export default function BukuIndex() {
                                     <td className="px-4 py-3 whitespace-nowrap">{book.tahun_terbit}</td>
                                     <td className="px-4 py-3">{book.penerbit}</td>
                                     <td className="px-4 py-3 whitespace-nowrap">
-                                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${parseInt(book.stok) > 0 ? 'bg-gray-100 text-gray-700' : 'bg-red-100 text-red-700'}`}>
+                                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${parseInt(book.stok) > 0 ? '' : 'text-red-700'}`}>
                                             {book.stok}
                                         </span>
                                     </td>
@@ -235,31 +245,24 @@ export default function BukuIndex() {
                                         <div className="flex space-x-2">
                                             <button
                                                 onClick={() => handleDetailBook(book)}
-                                                className="text-gray-500 hover:text-gray-700 transition-colors duration-150"
+                                                className="text-gray-500 hover:text-green-700 transition-colors duration-150"
                                                 title="Detail"
                                             >
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
+                                                  <EyeIcon className="w-5 h-5" />
                                             </button>
                                             <button
                                                 onClick={() => handleEditBook(book)}
-                                                className="text-gray-500 hover:text-gray-700 transition-colors duration-150"
+                                                className="text-gray-500 hover:text-blue-700 transition-colors duration-150"
                                                 title="Edit"
                                             >
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                </svg>
+                                                  <PencilIcon className="w-5 h-5" />
                                             </button>
                                             <button
                                                 onClick={() => openDeleteModal(book.id)}
                                                 className="text-gray-500 hover:text-red-600 transition-colors duration-150"
                                                 title="Hapus"
                                             >
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
+                                                  <TrashIcon className="w-5 h-5" />
                                             </button>
                                         </div>
                                     </td>
@@ -268,9 +271,7 @@ export default function BukuIndex() {
                                 <tr>
                                     <td colSpan="9" className="px-4 py-6 text-center text-gray-500 italic">
                                         <div className="flex flex-col items-center justify-center space-y-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                            </svg>
+                                            <BookOpenIcon className="w-6 h-6" />
                                             <span>Tidak ada buku yang tersedia saat ini.</span>
                                         </div>
                                     </td>
@@ -319,7 +320,7 @@ export default function BukuIndex() {
                                     </span>
                                 </div>
                             </div>
-                            
+
                             <div className="p-5">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
@@ -340,7 +341,7 @@ export default function BukuIndex() {
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div>
                                             <h3 className="text-sm font-medium text-gray-500 mb-1">Lokasi</h3>
                                             <div className="bg-gray-50 p-4 rounded-md">
@@ -353,7 +354,7 @@ export default function BukuIndex() {
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div>
                                         <h3 className="text-sm font-medium text-gray-500 mb-1">Deskripsi</h3>
                                         <div className="bg-gray-50 p-4 rounded-md h-full">

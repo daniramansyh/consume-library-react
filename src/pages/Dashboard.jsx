@@ -200,9 +200,16 @@ export default function Dashboard() {
                     </div>
                 )}
 
-                <div className="flex flex-col mb-8">
-                    <h1 className="text-3xl font-serif font-bold text-gray-800 mb-2">Dashboard Perpustakaan</h1>
-                    <p className="text-gray-600">Selamat datang di sistem manajemen perpustakaan digital</p>
+                <div className="flex flex-col items-center text-center mb-8 mt-8">
+                    <h1 className="text-4xl font-serif font-bold text-gray-800 mb-3 bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent">
+                        Pusat Literasi Digital
+                    </h1>
+                    <p className="text-gray-600 text-lg max-w-2xl">
+                        Selamat datang di portal pengetahuan kami! Mari jelajahi ribuan koleksi buku dan tingkatkan literasi bersama.
+                    </p>
+                    <div className="mt-3 text-sm text-gray-500 italic">
+                        "Membaca adalah jendela dunia, perpustakaan adalah pintunya."
+                    </div>
                 </div>
 
                 {!state.isLoaded ? (

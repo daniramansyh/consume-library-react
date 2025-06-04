@@ -4,6 +4,14 @@ import { API_URL } from '../../constant'
 import axios from 'axios'
 import Modal from '../../components/Modal'
 import { usePDF } from 'react-to-pdf';
+import {
+    UsersIcon,
+    PlusIcon,
+    EyeIcon,
+    PencilIcon,
+    TrashIcon,
+    ClockIcon
+} from "@heroicons/react/24/outline";
 
 const useAuth = () => {
     const navigate = useNavigate()
@@ -186,7 +194,7 @@ export default function MemberIndex() {
     if (!state.isLoaded) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
             </div>
         )
     }
@@ -205,62 +213,90 @@ export default function MemberIndex() {
                     </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-4 sm:mb-0">Daftar Member</h1>
+                <div className="flex justify-between items-center mb-8 mt-8 px-4">
+                    <div>
+                        <h1 className="text-4xl font-serif font-bold text-gray-800 bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent">
+                            Daftar Member
+                        </h1>
+                        <p className="text-gray-600 text-lg">
+                            Kelola data member perpustakaan dengan mudah dan efisien
+                        </p>
+                    </div>
                     <button
                         onClick={handleAddMember}
-                        className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
+                        className="flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-500 text-white rounded-lg hover:from-indigo-700 hover:to-blue-600 transition-all duration-200 shadow-md hover:shadow-lg"
                     >
-                        <i className="bi bi-plus-circle mr-2"></i>
-                        <span>Add New Member</span>
+                        <PlusIcon className="w-6 h-6 mr-1" />
+                        <span>Tambah Member</span>
                     </button>
                 </div>
 
-                <div className="overflow-x-auto bg-white rounded-lg shadow">
-                    <table className="w-full table-auto divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                <div className="overflow-hidden bg-white rounded-lg shadow-md">
+                    <table className="w-full table-auto">
+                        <thead className="bg-gray-100 text-gray-700">
                             <tr>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No. KTP</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alamat</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Lahir</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-winder">Action</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">No</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">No. KTP</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Nama</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Alamat</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Tanggal Lahir</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {members.map((member, index) => (
-                                <tr key={member.id} className="hover:bg-gray-50">
-                                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{member.no_ktp}</td>
-                                    <td className="px-3 py-2 text-sm text-gray-900">{member.nama}</td>
-                                    <td className="px-3 py-2 text-sm text-gray-900 max-w-xs truncate">{member.alamat}</td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
-                                        {new Date(member.tgl_lahir).toLocaleDateString()}
+                            {members.length > 0 ? members.map((member, index) => (
+                                <tr key={member.id} className="hover:bg-gray-50 transition-colors duration-150">
+                                    <td className="px-4 py-3 whitespace-nowrap">{index + 1}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap">{member.no_ktp}</td>
+                                    <td className="px-4 py-3 font-medium text-gray-700">{member.nama}</td>
+                                    <td className="px-4 py-3">{member.alamat}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        {new Date(member.tgl_lahir).toLocaleDateString('id-ID', {
+                                            day: '2-digit',
+                                            month: 'long',
+                                            year: 'numeric'
+                                        })}
                                     </td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-sm font-medium space-x-2">
-                                        <button onClick={() => handleDetailMember(member)} className="text-blue-600 hover:text-blue-800">
-                                            Detail
-                                        </button>
-                                        <button onClick={() => handleEditMember(member)} className="text-green-600 hover:text-green-800">
-                                            Edit
-                                        </button>
-                                        <button onClick={() => openDeleteModal(member.id)} className="text-red-600 hover:text-red-800">
-                                            Delete
-                                        </button>
-                                        <button
-                                            onClick={() => handleShowBorrowHistory(member)}
-                                            className="text-purple-600 hover:text-purple-800"
-                                        >
-                                            Riwayat Peminjaman
-                                        </button>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        <div className="flex space-x-2">
+                                            <button
+                                                onClick={() => handleDetailMember(member)}
+                                                className="text-gray-500 hover:text-blue-700 transition-colors duration-150"
+                                                title="Detail"
+                                            >
+                                                 <EyeIcon className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleEditMember(member)}
+                                                className="text-gray-500 hover:text-green-700 transition-colors duration-150"
+                                                title="Edit"
+                                            >
+                                                <PencilIcon className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => openDeleteModal(member.id)}
+                                                className="text-gray-500 hover:text-red-600 transition-colors duration-150"
+                                                title="Hapus"
+                                            >
+                                                 <TrashIcon className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleShowBorrowHistory(member)}
+                                                className="text-gray-500 hover:text-violet-700 transition-colors duration-150"
+                                                title="Riwayat"
+                                            >
+                                            <ClockIcon className='w-5 h-5'/>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
-                            ))}
-                            {members.length === 0 && (
+                            )) : (
                                 <tr>
-                                    <td colSpan="6" className="px-3 py-2 text-center text-sm text-gray-500">
-                                        Tidak ada member yang tersedia saat ini.
+                                    <td colSpan="6" className="px-4 py-6 text-center text-gray-500 italic">
+                                        <div className="flex flex-col items-center justify-center space-y-2">
+                                            <UsersIcon className="w-6 h-6" />
+                                            <span>Tidak ada member yang tersedia saat ini.</span>
+                                        </div>
                                     </td>
                                 </tr>
                             )}
@@ -365,7 +401,13 @@ export default function MemberIndex() {
                 size="xl"
                 footer={
                     <>
-                     <button onClick={() => toPDF()}>Download PDF</button>
+                        <button
+                            onClick={() => toPDF()}
+                            className="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5 cursor-pointer transition-colors duration-200 flex items-center gap-2"
+                        >
+                            <i className="bi bi-download"></i>
+                            Download PDF
+                        </button>
                     </>
                 }
             >
@@ -391,11 +433,11 @@ export default function MemberIndex() {
                                 backgroundColor: '#f9fafb'
                             }}>
                                 <tr>
-                                    <th style={{padding: '0.75rem 1.5rem'}}>No</th>
-                                    <th style={{padding: '0.75rem 1.5rem'}}>Judul Buku</th>
-                                    <th style={{padding: '0.75rem 1.5rem'}}>Tanggal Pinjam</th>
-                                    <th style={{padding: '0.75rem 1.5rem'}}>Tanggal Kembali</th>
-                                    <th style={{padding: '0.75rem 1.5rem'}}>Status</th>
+                                    <th style={{ padding: '0.75rem 1.5rem' }}>No</th>
+                                    <th style={{ padding: '0.75rem 1.5rem' }}>Judul Buku</th>
+                                    <th style={{ padding: '0.75rem 1.5rem' }}>Tanggal Pinjam</th>
+                                    <th style={{ padding: '0.75rem 1.5rem' }}>Tanggal Kembali</th>
+                                    <th style={{ padding: '0.75rem 1.5rem' }}>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -422,18 +464,18 @@ export default function MemberIndex() {
                                                     backgroundColor: '#f9fafb'
                                                 }
                                             }}>
-                                                <td style={{padding: '1rem 1.5rem'}}>{index + 1}</td>
-                                                <td style={{padding: '1rem 1.5rem'}}>{book ? `${book.judul} - ${book.id}` : history.id_buku}</td>
-                                                <td style={{padding: '1rem 1.5rem'}}>
+                                                <td style={{ padding: '1rem 1.5rem' }}>{index + 1}</td>
+                                                <td style={{ padding: '1rem 1.5rem' }}>{book ? `${book.judul} - ${book.id}` : history.id_buku}</td>
+                                                <td style={{ padding: '1rem 1.5rem' }}>
                                                     {new Date(history.tgl_pinjam).toLocaleDateString('id-ID')}
                                                 </td>
-                                                <td style={{padding: '1rem 1.5rem'}}>
+                                                <td style={{ padding: '1rem 1.5rem' }}>
                                                     {history.tgl_pengembalian ?
                                                         new Date(history.tgl_pengembalian).toLocaleDateString('id-ID') :
                                                         '-'
                                                     }
                                                 </td>
-                                                <td style={{padding: '1rem 1.5rem'}}>
+                                                <td style={{ padding: '1rem 1.5rem' }}>
                                                     <span style={{
                                                         padding: '0.25rem 0.5rem',
                                                         fontSize: '0.75rem',

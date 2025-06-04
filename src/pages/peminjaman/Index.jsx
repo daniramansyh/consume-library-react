@@ -4,6 +4,10 @@ import axios from 'axios';
 import { API_URL } from '../../constant';
 import Modal from '../../components/Modal';
 import * as XLSX from 'xlsx';
+import {
+    ClipboardDocumentIcon,
+    ArrowUturnRightIcon
+} from "@heroicons/react/24/outline";
 
 export default function PeminjamanIndex() {
     const navigate = useNavigate();
@@ -41,7 +45,7 @@ export default function PeminjamanIndex() {
     const handleSubmitAdd = (e) => {
         e.preventDefault();
         const selectedBook = books.find(book => book.id === parseInt(newPeminjaman.id_buku));
-        
+
         if (!selectedBook) {
             setState(prev => ({
                 ...prev,
@@ -49,7 +53,7 @@ export default function PeminjamanIndex() {
             }));
             return;
         }
-        
+
         if (selectedBook.stok <= 0) {
             setState(prev => ({
                 ...prev,
@@ -72,11 +76,11 @@ export default function PeminjamanIndex() {
                     ...prev,
                     alert: 'Peminjaman berhasil ditambahkan'
                 }));
-                
+
                 // Refresh data
                 fetchPeminjaman();
                 fetchBooks();
-                
+
                 // Reset form and close modal
                 setIsAddModalOpen(false);
                 setNewPeminjaman({
@@ -217,7 +221,7 @@ export default function PeminjamanIndex() {
 
         try {
             const selectedBook = books.find(book => book.id === selectedReturn.id_buku);
-            
+
             // Jika form denda ditampilkan dan ada denda
             if (returnInfo.showDendaForm && returnInfo.denda > 0) {
                 await axios.post(`${API_URL}/denda`, {
@@ -227,7 +231,7 @@ export default function PeminjamanIndex() {
                     jenis_denda: returnInfo.jenis_denda,
                     deskripsi: returnInfo.deskripsi
                 });
-                
+
                 // Jika jenis denda bukan kerusakan, tambah stok buku
                 if (returnInfo.jenis_denda !== 'kerusakan' && selectedBook) {
                     await axios.put(`${API_URL}/buku/${selectedReturn.id_buku}`, {
@@ -251,9 +255,9 @@ export default function PeminjamanIndex() {
                     ? `Buku berhasil dikembalikan dengan denda Rp ${returnInfo.denda.toLocaleString('id-ID')}`
                     : 'Buku berhasil dikembalikan'
             }));
-            
+
             closeReturnModal();
-            
+
             // Refresh data
             fetchPeminjaman();
             fetchBooks();
@@ -286,13 +290,21 @@ export default function PeminjamanIndex() {
         const dataToExport = borrows.map((item, index) => {
             const member = members.find(m => m.id === item.id_member);
             const book = books.find(b => b.id === item.id_buku);
-            
+
             return {
                 'No': index + 1,
                 'Nama Member': member ? member.nama : item.id_member,
                 'Judul Buku': book ? book.judul : item.id_buku,
-                'Tanggal Pinjam': new Date(item.tgl_pinjam).toLocaleDateString('id-ID'),
-                'Tanggal Pengembalian': item.tgl_pengembalian ? new Date(item.tgl_pengembalian).toLocaleDateString('id-ID') : '-',
+                'Tanggal Pinjam': new Date(item.tgl_pinjam).toLocaleDateString('id-ID', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                }),
+                'Tanggal Pengembalian': item.tgl_pengembalian ? new Date(item.tgl_pengembalian).toLocaleDateString('id-ID', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                }) : '-',
                 'Status': item.status_pengembalian ? 'Sudah Dikembalikan' : 'Belum Dikembalikan'
             };
         });
@@ -322,27 +334,33 @@ export default function PeminjamanIndex() {
                     </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-4 sm:mb-0">Daftar Peminjaman</h1>
-                    <div className="flex gap-2">
+                <div className="flex justify-between items-center mb-8 mt-8 px-4">
+                    <div>
+                        <h1 className="text-4xl font-serif font-bold text-gray-800 bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent">
+                            Daftar Peminjaman
+                        </h1>
+                        <p className="text-gray-600 text-lg">
+                            Kelola data peminjaman buku perpustakaan dengan mudah dan efisien
+                        </p>
+                    </div>
+                    <div className="flex gap-3">
                         <button
                             onClick={handleExportToExcel}
-                            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+                            className="flex items-center px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-500 text-white rounded-lg hover:from-emerald-700 hover:to-green-600 transition-all duration-200 shadow-md hover:shadow-lg"
                         >
-                            <i className="bi bi-file-earmark-excel mr-2"></i>
+                            <i className="bi bi-file-earmark-excel"></i>
                             <span>Export Excel</span>
                         </button>
                         <button
                             onClick={openAddModal}
-                            className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
+                            className="flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-500 text-white rounded-lg hover:from-indigo-700 hover:to-blue-600 transition-all duration-200 shadow-md hover:shadow-lg"
                         >
-                            <i className="bi bi-plus-circle mr-2"></i>
+                            <i className="bi bi-plus-circle"></i>
                             <span>Tambah Peminjaman</span>
                         </button>
                     </div>
                 </div>
 
-                {/* Modal Tambah Peminjaman */}
                 <Modal
                     isOpen={isAddModalOpen}
                     onClose={closeAddModal}
@@ -421,73 +439,87 @@ export default function PeminjamanIndex() {
                     </form>
                 </Modal>
 
-                <div className="overflow-x-auto shadow-md rounded-lg">
-                    <table className="w-full text-sm text-left text-gray-500">
-                        <thead className="text-xs text-gray-700 uppercase bg-gray-100">
+                <div className="overflow-hidden bg-white rounded-lg shadow-md">
+                    <table className="w-full table-auto">
+                        <thead className="bg-gray-100 text-gray-700">
                             <tr>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
-                                <th className="px-6 py-3">Nama Member - ID</th>
-                                <th className="px-6 py-3">Nama Buku - ID</th>
-                                <th className="px-6 py-3">Tanggal Pinjam</th>
-                                <th className="px-6 py-3">Tanggal Pengembalian</th>
-                                <th className="px-6 py-3">Status</th>
-                                <th className="px-6 py-3">Aksi</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">No</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Nama Member - ID</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Nama Buku - ID</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Tanggal Pinjam</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Tanggal Pengembalian</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {borrows.length === 0 ? (
-                                <tr>
-                                    <td colSpan="7" className="text-center py-4 text-gray-700">
-                                        Tidak ada data peminjaman
-                                    </td>
-                                </tr>
-                            ) : (
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {borrows.length > 0 ? (
                                 borrows.map((item, index) => {
                                     const member = members.find(m => m.id === item.id_member);
                                     const book = books.find(b => b.id === item.id_buku);
                                     return (
-                                        <tr
-                                            key={item.id}
-                                            className={`border-b ${!item.status_pengembalian ? 'bg-gray-50' : ''} hover:bg-gray-100`}
-                                        >
-                                            <td className="px-3 py-2">{index + 1}</td>
-                                            <td className="px-3 py-2">
+                                        <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-150">
+                                            <td className="px-4 py-3 whitespace-nowrap">{index + 1}</td>
+                                            <td className="px-4 py-3 whitespace-nowrap">
                                                 {member ? `${member.nama} - ${member.id}` : item.id_member}
                                             </td>
-                                            <td className="px-3 py-2">
+                                            <td className="px-4 py-3 font-medium text-gray-700">
                                                 {book ? `${book.judul} - ${book.id}` : item.id_buku}
                                             </td>
-                                            <td className="px-3 py-2">{item.tgl_pinjam}</td>
-                                            <td className="px-3 py-2">{item.tgl_pengembalian}</td>
-                                            <td className="px-3 py-2">
-                                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${!item.status_pengembalian
-                                                    ? 'bg-orange-100 text-orange-800'
-                                                    : 'bg-green-100 text-green-800'
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                {new Date(item.tgl_pinjam).toLocaleDateString('id-ID', {
+                                                    day: '2-digit',
+                                                    month: 'long',
+                                                    year: 'numeric'
+                                                })}
+                                            </td>
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                {item.tgl_pengembalian ? new Date(item.tgl_pengembalian).toLocaleDateString('id-ID', {
+                                                    day: '2-digit',
+                                                    month: 'long', 
+                                                    year: 'numeric'
+                                                }) : '-'}
+                                            </td>
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${!item.status_pengembalian
+                                                        ? 'text-orange-700'
+                                                        : ''
                                                     }`}>
                                                     {!item.status_pengembalian ? 'Belum Dikembalikan' : 'Sudah Dikembalikan'}
                                                 </span>
                                             </td>
-                                            <td className="px-3 py-2">
-                                                {!item.status_pengembalian && (
-                                                    <button
-                                                        onClick={() => openReturnModal(item)}
-                                                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 focus:outline-none transition-colors duration-200"
-                                                        title="Konfirmasi Pengembalian"
-                                                    >
-                                                        <i className="bi bi-arrow-counterclockwise"></i>
-                                                        Kembalikan
-                                                    </button>
-                                                )}
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <div className="flex space-x-2">
+                                                    {!item.status_pengembalian && (
+                                                        <button
+                                                            onClick={() => openReturnModal(item)}
+                                                            className="text-gray-500 hover:text-blue-700 transition-colors duration-150"
+                                                            title="Konfirmasi Pengembalian"
+                                                        >
+                                                            <ArrowUturnRightIcon className='w-5 h-5'/>
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     );
                                 })
+                            ) : (
+                                <tr>
+                                    <td colSpan="7" className="px-4 py-6 text-center text-gray-500 italic">
+                                        <div className="flex flex-col items-center justify-center space-y-2">
+                                            <ClipboardDocumentIcon className='w-5 h-5' />
+                                            <span>Tidak ada data peminjaman yang tersedia saat ini.</span>
+                                        </div>
+                                    </td>
+                                </tr>
                             )}
+
                         </tbody>
                     </table>
                 </div>
             </div>
-            
+
             {/* Modal Pengembalian */}
             <Modal
                 isOpen={isReturnModalOpen}
