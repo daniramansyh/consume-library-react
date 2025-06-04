@@ -117,68 +117,67 @@ export default function DendaIndex() {
                     </div>
                 </div>
 
-<div className="overflow-hidden bg-white rounded-lg shadow-md">
-    <table className="w-full table-auto">
-        <thead className="bg-gray-100 text-gray-700">
-            <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">No</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Nama Member</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Nama Buku</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Jumlah Denda</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Jenis Denda</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Deskripsi</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Tanggal</th>
-            </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-            {dendas.length > 0 ? dendas.map((item, index) => {
-                const member = members.find(m => m.id === item.id_member);
-                const book = books.find(b => b.id === item.id_buku);
-                return (
-                    <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-150">
-                        <td className="px-4 py-3 whitespace-nowrap">{index + 1}</td>
-                        <td className="px-4 py-3 font-medium text-gray-700">
-                            {member ? member.nama : item.id_member}
-                        </td>
-                        <td className="px-4 py-3">
-                            {book ? book.judul : item.id_buku}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                            Rp {parseInt(item.jumlah_denda).toLocaleString('id-ID')}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                item.jenis_denda === 'kerusakan' 
-                                ? 'text-red-700' 
-                                : 'text-yellow-700'
-                            }`}>
-                                {item.jenis_denda.charAt(0).toUpperCase() + item.jenis_denda.slice(1)}
-                            </span>
-                        </td>
-                        <td className="px-4 py-3 max-w-xs truncate text-gray-500 text-sm">
-                            {item.deskripsi}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                            {new Date(item.created_at).toLocaleDateString('id-ID', {
-                                day: '2-digit',
-                                month: 'long', 
-                                year: 'numeric'
-                            })}
-                        </td>
-                    </tr>
-                )
-            }) : (
-                <tr>
-                    <td colSpan="7" className="px-4 py-6 text-center text-gray-500 italic">
-                        <div className="flex flex-col items-center justify-center space-y-2">
-                            <span>Tidak ada data denda yang tersedia saat ini.</span>
-                        </div>
-                    </td>
-                </tr>
-            )}
-        </tbody>
-    </table>
-</div>
+                <div className="overflow-hidden bg-white rounded-lg shadow-md">
+                    <table className="w-full table-auto">
+                        <thead className="bg-gray-100 text-gray-700">
+                            <tr>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">No</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Nama Member</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Nama Buku</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Jumlah Denda</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Jenis Denda</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Deskripsi</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Tanggal</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {dendas.length > 0 ? dendas.map((item, index) => {
+                                const member = members.find(m => m.id === item.id_member);
+                                const book = books.find(b => b.id === item.id_buku);
+                                return (
+                                    <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-150">
+                                        <td className="px-4 py-3 whitespace-nowrap">{index + 1}</td>
+                                        <td className="px-4 py-3 font-medium text-gray-700">
+                                            {member ? member.nama : item.id_member}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {book ? book.judul : item.id_buku}
+                                        </td>
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            Rp {parseInt(item.jumlah_denda).toLocaleString('id-ID')}
+                                        </td>
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${item.jenis_denda === 'kerusakan'
+                                                    ? 'text-red-700'
+                                                    : 'text-yellow-700'
+                                                }`}>
+                                                {item.jenis_denda.charAt(0).toUpperCase() + item.jenis_denda.slice(1)}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3 max-w-xs truncate text-gray-500 text-sm">
+                                            {item.deskripsi}
+                                        </td>
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            {new Date(item.created_at).toLocaleDateString('id-ID', {
+                                                day: '2-digit',
+                                                month: 'long',
+                                                year: 'numeric'
+                                            })}
+                                        </td>
+                                    </tr>
+                                )
+                            }) : (
+                                <tr>
+                                    <td colSpan="7" className="px-4 py-6 text-center text-gray-500 italic">
+                                        <div className="flex flex-col items-center justify-center space-y-2">
+                                            <span>Tidak ada data denda yang tersedia saat ini.</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );

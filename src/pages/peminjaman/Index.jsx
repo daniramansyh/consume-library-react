@@ -222,7 +222,6 @@ export default function PeminjamanIndex() {
         try {
             const selectedBook = books.find(book => book.id === selectedReturn.id_buku);
 
-            // Jika form denda ditampilkan dan ada denda
             if (returnInfo.showDendaForm && returnInfo.denda > 0) {
                 await axios.post(`${API_URL}/denda`, {
                     id_member: selectedReturn.id_member,
@@ -232,7 +231,6 @@ export default function PeminjamanIndex() {
                     deskripsi: returnInfo.deskripsi
                 });
 
-                // Jika jenis denda bukan kerusakan, tambah stok buku
                 if (returnInfo.jenis_denda !== 'kerusakan' && selectedBook) {
                     await axios.put(`${API_URL}/buku/${selectedReturn.id_buku}`, {
                         ...selectedBook,
@@ -240,14 +238,12 @@ export default function PeminjamanIndex() {
                     });
                 }
             } else if (selectedBook) {
-                // Jika tidak ada denda, tambah stok buku
                 await axios.put(`${API_URL}/buku/${selectedReturn.id_buku}`, {
                     ...selectedBook,
                     stok: selectedBook.stok + 1
                 });
             }
 
-            // Proses pengembalian buku
             await axios.put(`${API_URL}/peminjaman/pengembalian/${selectedReturn.id}`);
             setState(prev => ({
                 ...prev,
@@ -258,7 +254,6 @@ export default function PeminjamanIndex() {
 
             closeReturnModal();
 
-            // Refresh data
             fetchPeminjaman();
             fetchBooks();
         } catch (err) {
@@ -286,7 +281,6 @@ export default function PeminjamanIndex() {
     }
 
     const handleExportToExcel = () => {
-        // Persiapkan data untuk export
         const dataToExport = borrows.map((item, index) => {
             const member = members.find(m => m.id === item.id_member);
             const book = books.find(b => b.id === item.id_buku);
@@ -309,15 +303,12 @@ export default function PeminjamanIndex() {
             };
         });
 
-        // Buat workbook baru
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.json_to_sheet(dataToExport);
 
-        // Tambahkan worksheet ke workbook
         XLSX.utils.book_append_sheet(wb, ws, 'Data Peminjaman');
 
-        // Generate file Excel dan download
-        XLSX.writeFile(wb, `Data_Peminjaman.pdf`);
+        XLSX.writeFile(wb, `Data_Peminjaman.xlsx`);
     };
 
     return (
@@ -361,84 +352,6 @@ export default function PeminjamanIndex() {
                     </div>
                 </div>
 
-                <Modal
-                    isOpen={isAddModalOpen}
-                    onClose={closeAddModal}
-                    title="Tambah Peminjaman Baru"
-                    size="lg"
-                    footer={
-                        <>
-                            <button
-                                type="button"
-                                onClick={closeAddModal}
-                                className="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 focus:z-10 focus:ring-4 focus:ring-gray-100"
-                            >
-                                Batal
-                            </button>
-                            <button
-                                type="submit"
-                                form="peminjamanForm"
-                                className="text-white bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                            >
-                                Simpan
-                            </button>
-                        </>
-                    }
-                >
-                    <form id="peminjamanForm" onSubmit={handleSubmitAdd} className="grid grid-cols-1 gap-4">
-                        <div>
-                            <label className="block mb-2 text-sm font-medium text-gray-900">Member</label>
-                            <select
-                                name="id_member"
-                                value={newPeminjaman.id_member}
-                                onChange={handleInputChange}
-                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5"
-                                required
-                            >
-                                <option value="">Pilih Member</option>
-                                {members.map(member => (
-                                    <option key={member.id} value={member.id}>
-                                        {member.nama} - {member.id}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block mb-2 text-sm font-medium text-gray-900">Buku</label>
-                            <select
-                                name="id_buku"
-                                value={newPeminjaman.id_buku}
-                                onChange={handleInputChange}
-                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5"
-                                required
-                            >
-                                <option value="">Pilih Buku</option>
-                                {books.map(book => (
-                                    <option key={book.id} value={book.id}>
-                                        {book.judul} - {book.id}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        {[
-                            { label: 'Tanggal Pinjam', name: 'tgl_pinjam', type: 'date' },
-                            { label: 'Tanggal Pengembalian', name: 'tgl_pengembalian', type: 'date' }
-                        ].map(({ label, name, type }) => (
-                            <div key={name}>
-                                <label className="block mb-2 text-sm font-medium text-gray-900">{label}</label>
-                                <input
-                                    type={type}
-                                    name={name}
-                                    value={newPeminjaman[name]}
-                                    onChange={handleInputChange}
-                                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5"
-                                    required
-                                />
-                            </div>
-                        ))}
-                    </form>
-                </Modal>
-
                 <div className="overflow-hidden bg-white rounded-lg shadow-md">
                     <table className="w-full table-auto">
                         <thead className="bg-gray-100 text-gray-700">
@@ -476,14 +389,14 @@ export default function PeminjamanIndex() {
                                             <td className="px-4 py-3 whitespace-nowrap">
                                                 {item.tgl_pengembalian ? new Date(item.tgl_pengembalian).toLocaleDateString('id-ID', {
                                                     day: '2-digit',
-                                                    month: 'long', 
+                                                    month: 'long',
                                                     year: 'numeric'
                                                 }) : '-'}
                                             </td>
                                             <td className="px-4 py-3 whitespace-nowrap">
                                                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${!item.status_pengembalian
-                                                        ? 'text-orange-700'
-                                                        : ''
+                                                    ? 'text-orange-700'
+                                                    : ''
                                                     }`}>
                                                     {!item.status_pengembalian ? 'Belum Dikembalikan' : 'Sudah Dikembalikan'}
                                                 </span>
@@ -496,7 +409,7 @@ export default function PeminjamanIndex() {
                                                             className="text-gray-500 hover:text-blue-700 transition-colors duration-150"
                                                             title="Konfirmasi Pengembalian"
                                                         >
-                                                            <ArrowUturnRightIcon className='w-5 h-5'/>
+                                                            <ArrowUturnRightIcon className='w-5 h-5' />
                                                         </button>
                                                     )}
                                                 </div>
@@ -520,7 +433,84 @@ export default function PeminjamanIndex() {
                 </div>
             </div>
 
-            {/* Modal Pengembalian */}
+            <Modal
+                isOpen={isAddModalOpen}
+                onClose={closeAddModal}
+                title="Tambah Peminjaman Baru"
+                size="lg"
+                footer={
+                    <>
+                        <button
+                            type="button"
+                            onClick={closeAddModal}
+                            className="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 focus:z-10 focus:ring-4 focus:ring-gray-100"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            form="peminjamanForm"
+                            className="text-white bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                        >
+                            Simpan
+                        </button>
+                    </>
+                }
+            >
+                <form id="peminjamanForm" onSubmit={handleSubmitAdd} className="grid grid-cols-1 gap-4">
+                    <div>
+                        <label className="block mb-2 text-sm font-medium text-gray-900">Member</label>
+                        <select
+                            name="id_member"
+                            value={newPeminjaman.id_member}
+                            onChange={handleInputChange}
+                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5"
+                            required
+                        >
+                            <option value="">Pilih Member</option>
+                            {members.map(member => (
+                                <option key={member.id} value={member.id}>
+                                    {member.nama} - {member.id}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block mb-2 text-sm font-medium text-gray-900">Buku</label>
+                        <select
+                            name="id_buku"
+                            value={newPeminjaman.id_buku}
+                            onChange={handleInputChange}
+                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5"
+                            required
+                        >
+                            <option value="">Pilih Buku</option>
+                            {books.map(book => (
+                                <option key={book.id} value={book.id}>
+                                    {book.judul} - {book.id}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    {[
+                        { label: 'Tanggal Pinjam', name: 'tgl_pinjam', type: 'date' },
+                        { label: 'Tanggal Pengembalian', name: 'tgl_pengembalian', type: 'date' }
+                    ].map(({ label, name, type }) => (
+                        <div key={name}>
+                            <label className="block mb-2 text-sm font-medium text-gray-900">{label}</label>
+                            <input
+                                type={type}
+                                name={name}
+                                value={newPeminjaman[name]}
+                                onChange={handleInputChange}
+                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5"
+                                required
+                            />
+                        </div>
+                    ))}
+                </form>
+            </Modal>
+
             <Modal
                 isOpen={isReturnModalOpen}
                 onClose={closeReturnModal}
