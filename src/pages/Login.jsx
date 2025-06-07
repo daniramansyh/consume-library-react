@@ -48,7 +48,6 @@ export default function Login() {
       localStorage.setItem('user', JSON.stringify({ email: credentials.email }));
       localStorage.setItem('just_logged_in', 'true');
 
-      // Arahkan langsung ke dashboard setelah login berhasil
       navigate('/dashboard');
     } catch (err) {
       const message =
@@ -75,8 +74,8 @@ export default function Login() {
             <div className="text-red-700">
               {error.data && typeof error.data === 'object'
                 ? Object.entries(error.data).map(([key, value]) => (
-                    <div key={key}>{value}</div>
-                  ))
+                  <div key={key}>{value}</div>
+                ))
                 : error.message}
             </div>
           </div>
@@ -114,11 +113,10 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className={`group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-lg text-white ${
-              loading
+            className={`group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-lg text-white ${loading
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500'
-            }`}
+              }`}
           >
             {loading ? (
               <>

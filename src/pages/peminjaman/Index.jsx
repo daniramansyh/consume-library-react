@@ -535,67 +535,92 @@ export default function PeminjamanIndex() {
                 }
             >
                 <div className="space-y-4">
-                    <p className="text-gray-700">
-                        Apakah Anda yakin ingin mengembalikan buku ini?
-                    </p>
+                    {selectedReturn && (
+                        <>
+                            <p className="text-gray-700">
+                                Apakah Anda yakin ingin mengembalikan buku ini?
+                            </p>
 
-                    <button
-                        onClick={toggleDendaForm}
-                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:outline-none focus:ring-gray-200"
-                    >
-                        <i className="bi bi-plus-circle mr-2"></i>
-                        Tambahkan Denda
-                    </button>
+                            {(() => {
+                                const returnDate = new Date(selectedReturn.tgl_pengembalian);
+                                const today = new Date();
+                                const diffTime = Math.abs(today - returnDate);
+                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                const isLate = today > returnDate;
+                                const lateFee = isLate ? diffDays * 500 : 0;
 
-                    {returnInfo.showDendaForm && (
-                        <div className="bg-gray-50 p-4 rounded-lg border">
-                            <h3 className="font-medium text-gray-900 mb-4">Form Denda</h3>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">
-                                        Jumlah Denda (Rp)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="denda"
-                                        value={returnInfo.denda}
-                                        onChange={handleDendaInputChange}
-                                        className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                                        required
-                                    />
+                                if (isLate) {
+                                    return (
+                                        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                                            <p className="text-yellow-700">
+                                                Buku telat dikembalikan selama {diffDays} hari.
+                                                Anda dikenakan denda sebesar Rp {lateFee.toLocaleString('id-ID')}
+                                            </p>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
+
+                            <button
+                                onClick={toggleDendaForm}
+                                className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:outline-none focus:ring-gray-200"
+                            >
+                                <i className="bi bi-plus-circle mr-2"></i>
+                                Tambahkan Denda
+                            </button>
+
+                            {returnInfo.showDendaForm && (
+                                <div className="bg-gray-50 p-4 rounded-lg border">
+                                    <h3 className="font-medium text-gray-900 mb-4">Form Denda Tambahan</h3>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block mb-2 text-sm font-medium text-gray-900">
+                                                Jumlah Denda (Rp)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                name="denda"
+                                                value={returnInfo.denda}
+                                                onChange={handleDendaInputChange}
+                                                className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block mb-2 text-sm font-medium text-gray-900">
+                                                Jenis Denda
+                                            </label>
+                                            <select
+                                                name="jenis_denda"
+                                                value={returnInfo.jenis_denda}
+                                                onChange={handleDendaInputChange}
+                                                className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                                                required
+                                            >
+                                                <option value="">Pilih Jenis Denda</option>
+                                                <option value="kerusakan">Kerusakan</option>
+                                                <option value="terlambat">Terlambat</option>
+                                                <option value="lainnya">Lainnya</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block mb-2 text-sm font-medium text-gray-900">
+                                                Deskripsi
+                                            </label>
+                                            <textarea
+                                                name="deskripsi"
+                                                value={returnInfo.deskripsi}
+                                                onChange={handleDendaInputChange}
+                                                className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                                                rows="3"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">
-                                        Jenis Denda
-                                    </label>
-                                    <select
-                                        name="jenis_denda"
-                                        value={returnInfo.jenis_denda}
-                                        onChange={handleDendaInputChange}
-                                        className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                                        required
-                                    >
-                                        <option value="">Pilih Jenis Denda</option>
-                                        <option value="terlambat">Terlambat</option>
-                                        <option value="kerusakan">Kerusakan</option>
-                                        <option value="lainnya">Lainnya</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">
-                                        Deskripsi
-                                    </label>
-                                    <textarea
-                                        name="deskripsi"
-                                        value={returnInfo.deskripsi}
-                                        onChange={handleDendaInputChange}
-                                        className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                                        rows="3"
-                                        required
-                                    />
-                                </div>
-                            </div>
-                        </div>
+                            )}
+                        </>
                     )}
                 </div>
             </Modal>

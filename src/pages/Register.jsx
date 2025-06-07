@@ -18,7 +18,6 @@ export default function Register() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        // Reset error saat user mengetik
         setError(null);
     };
 
@@ -36,9 +35,9 @@ export default function Register() {
 
     const registerProcess = async (e) => {
         e.preventDefault();
-        
+
         if (!validateForm()) return;
-        
+
         setLoading(true);
         setError(null);
 
@@ -60,18 +59,18 @@ export default function Register() {
             }
 
             localStorage.setItem('access_token', res.data.token);
-            localStorage.setItem('user', JSON.stringify({ 
+            localStorage.setItem('user', JSON.stringify({
                 email: formData.email,
-                name: formData.name 
+                name: formData.name
             }));
 
             navigate('/dashboard');
         } catch (err) {
             console.error("Register error:", err);
-            const message = err.response?.data?.message || 
-                          err.response?.data?.error || 
-                          err.message || 
-                          'Terjadi kesalahan saat registrasi';
+            const message = err.response?.data?.message ||
+                err.response?.data?.error ||
+                err.message ||
+                'Terjadi kesalahan saat registrasi';
             setError({ message });
         } finally {
             setLoading(false);
