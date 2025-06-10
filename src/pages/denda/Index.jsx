@@ -20,64 +20,66 @@ export default function DendaIndex() {
         navigate('/login');
     };
 
-    const fetchDenda = async () => {
-        try {
-            const res = await axios.get(`${API_URL}/denda`);
-            const data = res.data?.data || [];
-            setDendas(Array.isArray(data) ? data : []);
-            setState(prev => ({ ...prev, isLoaded: true }));
-        } catch (err) {
-            console.error(err);
-            if (err.response?.status === 401) {
-                handleUnauthorized();
-            } else {
-                setState(prev => ({
-                    ...prev,
-                    error: err.response?.data || { message: "Gagal memuat data." },
-                    isLoaded: true
-                }));
-            }
-        }
+    const fetchDenda = () => {
+        axios.get(`${API_URL}/denda`)
+            .then(res => {
+                const data = res.data?.data || [];
+                setDendas(Array.isArray(data) ? data : []);
+                setState(prev => ({ ...prev, isLoaded: true }));
+            })
+            .catch(err => {
+                console.error(err);
+                if (err.response?.status === 401) {
+                    handleUnauthorized();
+                } else {
+                    setState(prev => ({
+                        ...prev,
+                        error: err.response?.data || { message: "Gagal memuat data." },
+                        isLoaded: true
+                    }));
+                }
+            });
     };
 
-    const fetchBook = async () => {
-        try {
-            const res = await axios.get(`${API_URL}/buku`);
-            const data = res.data?.data || [];
-            setBooks(Array.isArray(data) ? data : []);
-            setState(prev => ({ ...prev, isLoaded: true }));
-        } catch (err) {
-            if (err.response?.status === 401) {
-                handleUnauthorized();
-            } else {
-                setState(prev => ({
-                    ...prev,
-                    error: err.response?.data || { message: "Gagal memuat data buku." },
-                    isLoaded: true
-                }));
-            }
-        }
+    const fetchBook = () => {
+        axios.get(`${API_URL}/buku`)
+            .then(res => {
+                const data = res.data?.data || [];
+                setBooks(Array.isArray(data) ? data : []);
+                setState(prev => ({ ...prev, isLoaded: true }));
+            })
+            .catch(err => {
+                if (err.response?.status === 401) {
+                    handleUnauthorized();
+                } else {
+                    setState(prev => ({
+                        ...prev,
+                        error: err.response?.data || { message: "Gagal memuat data buku." },
+                        isLoaded: true
+                    }));
+                }
+            });
     };
 
-    const fetchMember = async () => {
-        try {
-            const res = await axios.get(`${API_URL}/member`);
-            const data = res.data?.data || [];
-            setMembers(Array.isArray(data) ? data : []);
-            setState(prev => ({ ...prev, isLoaded: true }));
-        } catch (err) {
-            if (err.response?.status === 401) {
-                handleUnauthorized();
-            } else {
-                setState(prev => ({
-                    ...prev,
-                    error: err.response?.data || { message: "Gagal memuat data member." },
-                    isLoaded: true
-                }));
-            }
-        }
+    const fetchMember = () => {
+        axios.get(`${API_URL}/member`)
+            .then(res => {
+                const data = res.data?.data || [];
+                setMembers(Array.isArray(data) ? data : []);
+                setState(prev => ({ ...prev, isLoaded: true }));
+            })
+            .catch(err => {
+                if (err.response?.status === 401) {
+                    handleUnauthorized();
+                } else {
+                    setState(prev => ({
+                        ...prev,
+                        error: err.response?.data || { message: "Gagal memuat data member." },
+                        isLoaded: true
+                    }));
+                }
+            });
     };
-
     useEffect(() => {
         fetchBook();
         fetchMember();

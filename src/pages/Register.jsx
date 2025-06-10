@@ -33,7 +33,7 @@ export default function Register() {
         return true;
     };
 
-    const registerProcess = async (e) => {
+    const registerProcess = (e) => {
         e.preventDefault();
 
         if (!validateForm()) return;
@@ -41,19 +41,18 @@ export default function Register() {
         setLoading(true);
         setError(null);
 
-        try {
-            const res = await axios.post(`${API_URL}/register`, {
-                name: formData.name,
-                email: formData.email,
-                password: formData.password,
-                c_password: formData.c_password
-            }, {
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
-
+        axios.post(`${API_URL}/register`, {
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            c_password: formData.c_password
+        }, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(res => {
             if (!res.data || !res.data.token) {
                 throw new Error('Token tidak ditemukan dalam response');
             }
@@ -65,16 +64,18 @@ export default function Register() {
             }));
 
             navigate('/dashboard');
-        } catch (err) {
+        })
+        .catch(err => {
             console.error("Register error:", err);
             const message = err.response?.data?.message ||
                 err.response?.data?.error ||
                 err.message ||
                 'Terjadi kesalahan saat registrasi';
             setError({ message });
-        } finally {
+        })
+        .finally(() => {
             setLoading(false);
-        }
+        });
     };
 
     return (

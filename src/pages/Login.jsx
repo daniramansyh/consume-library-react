@@ -27,38 +27,39 @@ export default function Login() {
     setCredentials((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    try {
-      const { data } = await axios.post(`${API_URL}/login`, credentials, {
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
+    axios.post(`${API_URL}/login`, credentials, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(({ data }) => {
+        if (!data?.token) {
+          throw new Error('Token tidak ditemukan dalam response');
+        }
+
+        localStorage.setItem('access_token', data.token);
+        localStorage.setItem('user', JSON.stringify({ email: credentials.email }));
+        localStorage.setItem('just_logged_in', 'true');
+
+        navigate('/dashboard');
+      })
+      .catch((err) => {
+        const message =
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.message ||
+          'Terjadi kesalahan saat login';
+        setError({ message });
+      })
+      .finally(() => {
+        setLoading(false);
       });
-
-      if (!data?.token) {
-        throw new Error('Token tidak ditemukan dalam response');
-      }
-
-      localStorage.setItem('access_token', data.token);
-      localStorage.setItem('user', JSON.stringify({ email: credentials.email }));
-      localStorage.setItem('just_logged_in', 'true');
-
-      navigate('/dashboard');
-    } catch (err) {
-      const message =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        err.message ||
-        'Terjadi kesalahan saat login';
-      setError({ message });
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (

@@ -24,7 +24,6 @@ export default function PeminjamanIndex() {
         alert: ''
     });
 
-    // State untuk modal tambah peminjaman
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [newPeminjaman, setNewPeminjaman] = useState({
         id_member: '',
@@ -33,7 +32,6 @@ export default function PeminjamanIndex() {
         tgl_pengembalian: ''
     });
 
-    // Handler untuk input form
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setNewPeminjaman(prev => ({
@@ -62,10 +60,8 @@ export default function PeminjamanIndex() {
             return;
         }
 
-        // Add new borrowing record
         axios.post(`${API_URL}/peminjaman`, newPeminjaman)
             .then(() => {
-                // Update book stock
                 return axios.put(`${API_URL}/buku/${newPeminjaman.id_buku}`, {
                     ...selectedBook,
                     stok: selectedBook.stok - 1
@@ -77,11 +73,9 @@ export default function PeminjamanIndex() {
                     alert: 'Peminjaman berhasil ditambahkan'
                 }));
 
-                // Refresh data
                 fetchPeminjaman();
                 fetchBooks();
 
-                // Reset form and close modal
                 setIsAddModalOpen(false);
                 setNewPeminjaman({
                     id_member: '',
@@ -105,29 +99,29 @@ export default function PeminjamanIndex() {
     const openAddModal = () => setIsAddModalOpen(true);
     const closeAddModal = () => setIsAddModalOpen(false);
 
-    const fetchPeminjaman = async () => {
-        try {
-            const res = await axios.get(`${API_URL}/peminjaman`);
-            const data = res.data?.data || [];
-            // Urutkan data dengan yang terbaru di atas
-            const sortedData = Array.isArray(data)
-                ? [...data].sort((a, b) => b.id - a.id)
-                : [];
-            setBorrows(sortedData);
-            setState(prev => ({ ...prev, isLoaded: true, error: null }));
-        } catch (err) {
-            if (err.response?.status === 401) {
-                handleUnauthorized();
-            } else {
-                setState(prev => ({
-                    ...prev,
-                    error: err.response?.data || { message: 'Gagal memuat data.' },
-                    isLoaded: true
-                }));
-            }
-        }
+    const fetchPeminjaman = () => {
+        axios.get(`${API_URL}/peminjaman`)
+            .then(res => {
+                const data = res.data?.data || [];
+                // Urutkan data dengan yang terbaru di atas
+                const sortedData = Array.isArray(data)
+                    ? [...data].sort((a, b) => b.id - a.id)
+                    : [];
+                setBorrows(sortedData);
+                setState(prev => ({ ...prev, isLoaded: true, error: null }));
+            })
+            .catch(err => {
+                if (err.response?.status === 401) {
+                    handleUnauthorized();
+                } else {
+                    setState(prev => ({
+                        ...prev,
+                        error: err.response?.data || { message: 'Gagal memuat data.' },
+                        isLoaded: true
+                    }));
+                }
+            });
     };
-
     // Fetch data member
     const fetchMembers = () => {
         axios.get(`${API_URL}/member`)
@@ -150,22 +144,22 @@ export default function PeminjamanIndex() {
     }
 
     // Fetch data buku
-    const fetchBooks = async () => {
-        try {
-            const res = await axios.get(`${API_URL}/buku`)
-            setBooks(Array.isArray(res.data) ? res.data : [])
-            setState(prev => ({ ...prev, isLoaded: true }))
-        } catch (err) {
-            err.response?.status === 401
-                ? handleUnauthorized()
-                : setState(prev => ({
-                    ...prev,
-                    error: err.response?.data || { message: "Failed to fetch data." },
-                    isLoaded: true
-                }))
-        }
+    const fetchBooks = () => {
+        axios.get(`${API_URL}/buku`)
+            .then(res => {
+                setBooks(Array.isArray(res.data) ? res.data : [])
+                setState(prev => ({ ...prev, isLoaded: true }))
+            })
+            .catch(err => {
+                err.response?.status === 401
+                    ? handleUnauthorized()
+                    : setState(prev => ({
+                        ...prev,
+                        error: err.response?.data || { message: "Failed to fetch data." },
+                        isLoaded: true
+                    }))
+            })
     }
-
     // State untuk modal pengembalian
     const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
     const [selectedReturn, setSelectedReturn] = useState(null);
@@ -216,51 +210,72 @@ export default function PeminjamanIndex() {
         });
     };
 
-    const handleConfirmReturn = async () => {
+    const handleConfirmReturn = () => {
         if (!selectedReturn) return;
 
-        try {
-            const selectedBook = books.find(book => book.id === selectedReturn.id_buku);
+        const selectedBook = books.find(book => book.id === selectedReturn.id_buku);
 
-            if (returnInfo.showDendaForm && returnInfo.denda > 0) {
-                await axios.post(`${API_URL}/denda`, {
-                    id_member: selectedReturn.id_member,
-                    id_buku: selectedReturn.id_buku,
-                    jumlah_denda: returnInfo.denda,
-                    jenis_denda: returnInfo.jenis_denda,
-                    deskripsi: returnInfo.deskripsi
-                });
-
+        if (returnInfo.showDendaForm && returnInfo.denda > 0) {
+            axios.post(`${API_URL}/denda`, {
+                id_member: selectedReturn.id_member,
+                id_buku: selectedReturn.id_buku,
+                jumlah_denda: returnInfo.denda,
+                jenis_denda: returnInfo.jenis_denda,
+                deskripsi: returnInfo.deskripsi
+            })
+            .then(() => {
                 if (returnInfo.jenis_denda !== 'kerusakan' && selectedBook) {
-                    await axios.put(`${API_URL}/buku/${selectedReturn.id_buku}`, {
+                    return axios.put(`${API_URL}/buku/${selectedReturn.id_buku}`, {
                         ...selectedBook,
                         stok: selectedBook.stok + 1
                     });
                 }
-            } else if (selectedBook) {
-                await axios.put(`${API_URL}/buku/${selectedReturn.id_buku}`, {
-                    ...selectedBook,
-                    stok: selectedBook.stok + 1
-                });
-            }
+            })
+            .then(() => {
+                return axios.put(`${API_URL}/peminjaman/pengembalian/${selectedReturn.id}`);
+            })
+            .then(() => {
+                setState(prev => ({
+                    ...prev,
+                    alert: returnInfo.denda > 0
+                        ? `Buku berhasil dikembalikan dengan denda Rp ${returnInfo.denda.toLocaleString('id-ID')}`
+                        : 'Buku berhasil dikembalikan'
+                }));
 
-            await axios.put(`${API_URL}/peminjaman/pengembalian/${selectedReturn.id}`);
-            setState(prev => ({
-                ...prev,
-                alert: returnInfo.denda > 0
-                    ? `Buku berhasil dikembalikan dengan denda Rp ${returnInfo.denda.toLocaleString('id-ID')}`
-                    : 'Buku berhasil dikembalikan'
-            }));
+                closeReturnModal();
+                fetchPeminjaman();
+                fetchBooks();
+            })
+            .catch(err => {
+                setState(prev => ({
+                    ...prev,
+                    error: err.response?.data || { message: 'Gagal mengembalikan buku.' }
+                }));
+            });
+        } else if (selectedBook) {
+            axios.put(`${API_URL}/buku/${selectedReturn.id_buku}`, {
+                ...selectedBook,
+                stok: selectedBook.stok + 1
+            })
+            .then(() => {
+                return axios.put(`${API_URL}/peminjaman/pengembalian/${selectedReturn.id}`);
+            })
+            .then(() => {
+                setState(prev => ({
+                    ...prev,
+                    alert: 'Buku berhasil dikembalikan'
+                }));
 
-            closeReturnModal();
-
-            fetchPeminjaman();
-            fetchBooks();
-        } catch (err) {
-            setState(prev => ({
-                ...prev,
-                error: err.response?.data || { message: 'Gagal mengembalikan buku.' }
-            }));
+                closeReturnModal();
+                fetchPeminjaman();
+                fetchBooks();
+            })
+            .catch(err => {
+                setState(prev => ({
+                    ...prev,
+                    error: err.response?.data || { message: 'Gagal mengembalikan buku.' }
+                }));
+            });
         }
     };
 
@@ -544,10 +559,12 @@ export default function PeminjamanIndex() {
                             {(() => {
                                 const returnDate = new Date(selectedReturn.tgl_pengembalian);
                                 const today = new Date();
+                                returnDate.setHours(0, 0, 0, 0);
+                                today.setHours(0, 0, 0, 0);
                                 const diffTime = Math.abs(today - returnDate);
                                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                                 const isLate = today > returnDate;
-                                const lateFee = isLate ? diffDays * 500 : 0;
+                                const lateFee = (isLate && diffDays > 0) ? diffDays * 500 : 0;
 
                                 if (isLate) {
                                     return (

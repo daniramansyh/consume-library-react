@@ -47,21 +47,21 @@ export default function BukuIndex() {
     })
 
     const { handleUnauthorized } = useAuth()
-
-    const fetchBook = async () => {
-        try {
-            const res = await axios.get(`${API_URL}/buku`)
-            setBooks(Array.isArray(res.data) ? res.data : [])
-            setState(prev => ({ ...prev, isLoaded: true }))
-        } catch (err) {
-            err.response?.status === 401
-                ? handleUnauthorized()
-                : setState(prev => ({
-                    ...prev,
-                    error: err.response?.data || { message: "Gagal mengambil data buku." },
-                    isLoaded: true
-                }))
-        }
+    const fetchBook = () => {
+        axios.get(`${API_URL}/buku`)
+            .then(res => {
+                setBooks(Array.isArray(res.data) ? res.data : [])
+                setState(prev => ({ ...prev, isLoaded: true }))
+            })
+            .catch(err => {
+                err.response?.status === 401
+                    ? handleUnauthorized()
+                    : setState(prev => ({
+                        ...prev,
+                        error: err.response?.data || { message: "Gagal mengambil data buku." },
+                        isLoaded: true
+                    }))
+            })
     }
 
     useEffect(() => {
@@ -101,26 +101,27 @@ export default function BukuIndex() {
         setIsEditModalOpen(true)
     }
 
-    const handleEditSubmit = async (e) => {
+    const handleEditSubmit = (e) => {
         e.preventDefault()
-        try {
-            const response = await axios.put(`${API_URL}/buku/${editBook.id}`, editBook)
-            if (response.data) {
-                setState(prev => ({
-                    ...prev,
-                    alert: 'Buku berhasil diperbarui!'
-                }))
-                fetchBook()
-                setIsEditModalOpen(false)
-            }
-        } catch (err) {
-            err.response?.status === 401
-                ? handleUnauthorized()
-                : setState(prev => ({
-                    ...prev,
-                    error: err.response?.data || { message: 'Gagal memperbarui buku.' }
-                }))
-        }
+        axios.put(`${API_URL}/buku/${editBook.id}`, editBook)
+            .then(response => {
+                if (response.data) {
+                    setState(prev => ({
+                        ...prev,
+                        alert: 'Buku berhasil diperbarui!'
+                    }))
+                    fetchBook()
+                    setIsEditModalOpen(false)
+                }
+            })
+            .catch(err => {
+                err.response?.status === 401
+                    ? handleUnauthorized()
+                    : setState(prev => ({
+                        ...prev,
+                        error: err.response?.data || { message: 'Gagal memperbarui buku.' }
+                    }))
+            })
     }
 
     const handleEditInputChange = (e) => {
@@ -128,56 +129,57 @@ export default function BukuIndex() {
         setEditBook(prev => ({ ...prev, [name]: value }))
     }
 
-    const handleDeleteBook = async () => {
-        try {
-            await axios.delete(`${API_URL}/buku/${deleteBookId}`)
-            setState(prev => ({ ...prev, alert: 'Buku berhasil dihapus!' }))
-            fetchBook()
-            setIsDeleteModalOpen(false)
-        } catch (err) {
-            err.response?.status === 401
-                ? handleUnauthorized()
-                : setState(prev => ({
-                    ...prev,
-                    error: err.response?.data || { message: "Gagal menghapus buku." }
-                }))
-        }
+    const handleDeleteBook = () => {
+        axios.delete(`${API_URL}/buku/${deleteBookId}`)
+            .then(() => {
+                setState(prev => ({ ...prev, alert: 'Buku berhasil dihapus!' }))
+                fetchBook()
+                setIsDeleteModalOpen(false)
+            })
+            .catch(err => {
+                err.response?.status === 401
+                    ? handleUnauthorized()
+                    : setState(prev => ({
+                        ...prev,
+                        error: err.response?.data || { message: "Gagal menghapus buku." }
+                    }))
+            })
     }
-
     const openDeleteModal = (id) => {
         setDeleteBookId(id)
         setIsDeleteModalOpen(true)
     }
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault()
-        try {
-            const response = await axios.post(`${API_URL}/buku`, newBook)
-            if (response.data) {
-                setState(prev => ({
-                    ...prev,
-                    alert: 'Buku berhasil ditambahkan!'
-                }))
-                fetchBook()
-                setIsAddModalOpen(false)
-                setNewBook({
-                    no_rak: '',
-                    judul: '',
-                    pengarang: '',
-                    tahun_terbit: '',
-                    penerbit: '',
-                    stok: '',
-                    detail: ''
-                })
-            }
-        } catch (err) {
-            err.response?.status === 401
-                ? handleUnauthorized()
-                : setState(prev => ({
-                    ...prev,
-                    error: err.response?.data || { message: 'Gagal menambahkan buku.' }
-                }))
-        }
+        axios.post(`${API_URL}/buku`, newBook)
+            .then(response => {
+                if (response.data) {
+                    setState(prev => ({
+                        ...prev,
+                        alert: 'Buku berhasil ditambahkan!'
+                    }))
+                    fetchBook()
+                    setIsAddModalOpen(false)
+                    setNewBook({
+                        no_rak: '',
+                        judul: '',
+                        pengarang: '',
+                        tahun_terbit: '',
+                        penerbit: '',
+                        stok: '',
+                        detail: ''
+                    })
+                }
+            })
+            .catch(err => {
+                err.response?.status === 401
+                    ? handleUnauthorized()
+                    : setState(prev => ({
+                        ...prev,
+                        error: err.response?.data || { message: 'Gagal menambahkan buku.' }
+                    }))
+            })
     }
 
     const handleInputChange = (e) => {
