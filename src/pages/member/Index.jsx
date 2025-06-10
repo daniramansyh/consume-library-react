@@ -328,7 +328,15 @@ export default function MemberIndex() {
             >
                 <form id="addMemberForm" onSubmit={handleAddSubmit} className="grid grid-cols-1 gap-4">
                     {[
-                        { label: 'No. KTP', name: 'no_ktp', type: 'text' },
+                        { 
+                            label: 'No. KTP', 
+                            name: 'no_ktp', 
+                            type: 'text',
+                            pattern: '[0-9]{16}',
+                            title: 'No. KTP harus 16 digit angka',
+                            maxLength: 16,
+                            minLength: 16
+                        },
                         { label: 'Nama', name: 'nama', type: 'text' },
                         { label: 'Tanggal Lahir', name: 'tgl_lahir', type: 'date' },
                         { label: 'Alamat', name: 'alamat', type: 'textarea', rows: 3 }

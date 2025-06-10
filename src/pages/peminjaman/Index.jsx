@@ -185,17 +185,47 @@ export default function PeminjamanIndex() {
             ...prev,
             showDendaForm: !prev.showDendaForm
         }));
+
+        if (!returnInfo.showDendaForm && selectedReturn) {
+            const returnDate = new Date(selectedReturn.tgl_pengembalian);
+            const today = new Date();
+            returnDate.setHours(0, 0, 0, 0);
+            today.setHours(0, 0, 0, 0);
+            const diffTime = Math.abs(today - returnDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const isLate = today > returnDate;
+            const lateFee = (isLate && diffDays > 0) ? diffDays * 500 : 0;
+
+            if (isLate) {
+                setReturnInfo(prev => ({
+                    ...prev,
+                    showDendaForm: true,
+                    denda: lateFee,
+                    jenis_denda: "terlambat", 
+                    deskripsi: `Keterlambatan pengembalian selama ${diffDays} hari`
+                }));
+            }
+        }
     };
 
-    // Prepare modal return
     const openReturnModal = item => {
         setSelectedReturn(item);
+        const returnDate = new Date(item.tgl_pengembalian);
+        const today = new Date();
+        returnDate.setHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
+        const diffTime = Math.abs(today - returnDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const isLate = today > returnDate;
+        const lateFee = (isLate && diffDays > 0) ? diffDays * 500 : 0;
+
         setReturnInfo({
-            showDendaForm: false,
-            denda: 0,
-            jenis_denda: '',
-            deskripsi: ''
+            showDendaForm: isLate,
+            denda: lateFee,
+            jenis_denda: isLate ? "terlambat" : '',
+            deskripsi: isLate ? `Keterlambatan pengembalian selama ${diffDays} hari` : ''
         });
+        
         setIsReturnModalOpen(true);
     };
 
@@ -214,31 +244,45 @@ export default function PeminjamanIndex() {
         if (!selectedReturn) return;
 
         const selectedBook = books.find(book => book.id === selectedReturn.id_buku);
+        const apiCalls = [];
 
+        // Create denda payload if needed
         if (returnInfo.showDendaForm && returnInfo.denda > 0) {
-            axios.post(`${API_URL}/denda`, {
-                id_member: selectedReturn.id_member,
-                id_buku: selectedReturn.id_buku,
-                jumlah_denda: returnInfo.denda,
-                jenis_denda: returnInfo.jenis_denda,
-                deskripsi: returnInfo.deskripsi
-            })
-            .then(() => {
-                if (returnInfo.jenis_denda !== 'kerusakan' && selectedBook) {
-                    return axios.put(`${API_URL}/buku/${selectedReturn.id_buku}`, {
-                        ...selectedBook,
-                        stok: selectedBook.stok + 1
-                    });
-                }
-            })
-            .then(() => {
-                return axios.put(`${API_URL}/peminjaman/pengembalian/${selectedReturn.id}`);
-            })
+            const dendaPayload = {
+                id_peminjaman: String(selectedReturn.id),
+                id_member: String(selectedReturn.id_member),
+                id_buku: String(selectedReturn.id_buku), 
+                jumlah_denda: String(returnInfo.denda),
+                jenis_denda: String(returnInfo.jenis_denda),
+                deskripsi: String(returnInfo.deskripsi)
+            };
+
+            apiCalls.push(
+                axios.post(`${API_URL}/denda`, dendaPayload)
+            );
+        }
+
+        // Update book stock if not damaged
+        if ((!returnInfo.showDendaForm || returnInfo.jenis_denda !== 'kerusakan') && selectedBook) {
+            apiCalls.push(
+                axios.put(`${API_URL}/buku/${selectedReturn.id_buku}`, {
+                    ...selectedBook,
+                    stok: selectedBook.stok + 1
+                })
+            );
+        }
+
+        // Confirm return
+        apiCalls.push(
+            axios.put(`${API_URL}/peminjaman/pengembalian/${selectedReturn.id}`)
+        );
+
+        Promise.all(apiCalls)
             .then(() => {
                 setState(prev => ({
                     ...prev,
                     alert: returnInfo.denda > 0
-                        ? `Buku berhasil dikembalikan dengan denda Rp ${returnInfo.denda.toLocaleString('id-ID')}`
+                        ? `Buku berhasil dikembalikan dengan denda Rp ${parseInt(returnInfo.denda).toLocaleString('id-ID')}`
                         : 'Buku berhasil dikembalikan'
                 }));
 
@@ -247,45 +291,19 @@ export default function PeminjamanIndex() {
                 fetchBooks();
             })
             .catch(err => {
+                console.error("Error during return process:", err);
                 setState(prev => ({
                     ...prev,
                     error: err.response?.data || { message: 'Gagal mengembalikan buku.' }
                 }));
             });
-        } else if (selectedBook) {
-            axios.put(`${API_URL}/buku/${selectedReturn.id_buku}`, {
-                ...selectedBook,
-                stok: selectedBook.stok + 1
-            })
-            .then(() => {
-                return axios.put(`${API_URL}/peminjaman/pengembalian/${selectedReturn.id}`);
-            })
-            .then(() => {
-                setState(prev => ({
-                    ...prev,
-                    alert: 'Buku berhasil dikembalikan'
-                }));
-
-                closeReturnModal();
-                fetchPeminjaman();
-                fetchBooks();
-            })
-            .catch(err => {
-                setState(prev => ({
-                    ...prev,
-                    error: err.response?.data || { message: 'Gagal mengembalikan buku.' }
-                }));
-            });
-        }
     };
 
-    // Panggil fetch data saat komponen dimount
     useEffect(() => {
         fetchPeminjaman();
         fetchMembers();
         fetchBooks();
     }, []);
-
 
     if (!state.isLoaded) {
         return (
@@ -322,7 +340,6 @@ export default function PeminjamanIndex() {
         const ws = XLSX.utils.json_to_sheet(dataToExport);
 
         XLSX.utils.book_append_sheet(wb, ws, 'Data Peminjaman');
-
         XLSX.writeFile(wb, `Data_Peminjaman.xlsx`);
     };
 
@@ -442,7 +459,6 @@ export default function PeminjamanIndex() {
                                     </td>
                                 </tr>
                             )}
-
                         </tbody>
                     </table>
                 </div>
@@ -584,12 +600,12 @@ export default function PeminjamanIndex() {
                                 className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:outline-none focus:ring-gray-200"
                             >
                                 <i className="bi bi-plus-circle mr-2"></i>
-                                Tambahkan Denda
+                                {returnInfo.showDendaForm ? 'Tutup Form Denda' : 'Tambahkan Denda'}
                             </button>
 
                             {returnInfo.showDendaForm && (
                                 <div className="bg-gray-50 p-4 rounded-lg border">
-                                    <h3 className="font-medium text-gray-900 mb-4">Form Denda Tambahan</h3>
+                                    <h3 className="font-medium text-gray-900 mb-4">Form Denda</h3>
                                     <div className="space-y-4">
                                         <div>
                                             <label className="block mb-2 text-sm font-medium text-gray-900">
